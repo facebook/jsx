@@ -17,7 +17,110 @@ It is our intention to claim minimal syntactic real estate while keeping the syn
 Syntax
 ------
 
-TODO
+_JSX extends the PrimaryExpression in the [ECMAScript 6th Edition (ECMA-262)](http://people.mozilla.org/~jorendorff/es6-draft.html) grammar._
+
+PrimaryExpression :
+- JSXElement
+
+__Elements__
+
+JSXElement : 
+- JSXSelfClosingElement 
+- JSXOpeningElement JSXChildren<sub>opt</sub> JSXClosingElement
+
+JSXSelfClosingElement :
+- `<` JSXElementName JSXAttributes<sub>opt</sub> JSXWhitespace<sub>opt</sub> `/` `>`
+
+JSXOpeningElement :
+- `<` JSXElementName JSXAttributes<sub>opt</sub> JSXWhitespace<sub>opt</sub> `>`
+
+JSXClosingElement :
+- `<` `/` JSXElementName JSXWhitespace<sub>opt</sub> `>`
+
+JSXElementName :
+- JSXIdentifier
+- JSXNamedspacedName
+- JSXMemberExpression
+
+JSXIdentifier :
+- JSXIdentifierStart
+- JSXIdentifier JSXIdentifierPart
+
+JSXIdentifierStart :
+- IdentifierStart __but not `\` UnicodeEscapeSequence__
+
+JSXIdentifierPart :
+- IdentifierPart __but not `\` UnicodeEscapeSequence__
+- `-`
+
+JSXNamespacedName :
+- JSXIdentifier `:` JSXIdentifier
+
+JSXMemberExpression :
+- JSXMemberExpression `.` JSXIdentifier
+
+__Attributes__
+
+JSXAttributes : 
+- JSXSpreadAttribute JSXAttributes<sub>opt</sub>
+- JSXAttribute JSXAttributes<sub>opt</sub>
+
+JSXSpreadAttribute :
+- JSXWhitespace `{` `...` AssignmentExpression `}`
+
+JSXAttribute : 
+- JSXWhitespace JSXAttributeName JSXWhitespace<sub>opt</sub> `=` JSXWhitespace<sub>opt</sub> JSXAttributeValue
+
+JSXAttributeName :
+- JSXIdentifier
+- JSXNamespacedName
+
+JSXAttributeValue : 
+- `"` JSXDoubleStringCharacters<sub>opt</sub> `"`
+- `'` JSXSingleStringCharacters<sub>opt</sub> `'`
+- `{` JSXWhitespace `}`
+- `{` AssignmentExpression `}`
+
+JSXDoubleStringCharacters : 
+- JSXDoubleStringCharacter JSXDoubleStringCharacters<sub>opt</sub>
+
+JSXDoubleStringCharacter : 
+- SourceCharacter __but not `"`__
+
+JSXSingleStringCharacters : 
+- JSXSingleStringCharacter JSXSingleStringCharacters<sub>opt</sub>
+
+JSXSingleStringCharacter : 
+- SourceCharacter __but not `'`__
+
+__Children__
+
+JSXChildren : 
+- JSXChild JSXChildren<sub>opt</sub>
+
+JSXChild :
+- JSXText JSXChildren<sub>opt</sub>
+- JSXElement JSXChildren<sub>opt</sub>
+- `{` JSXWhitespace<sub>opt</sub> `}`
+- `{` AssignmentExpression `}`
+
+JSXText :
+- JSXTextCharacter JSXText<sub>opt</sub>
+
+JSXTextCharacter :
+- SourceCharacter __but not one of `{` or `<`__
+
+__Whitespace and Comments__
+
+_JSX treats comments as whitespace where they are allowed._
+
+JSXWhitespace :
+- JSXWhitespacePart JSXWhitespace<sub>opt</sub>
+
+JSXWhitespacePart :
+- WhiteSpace
+- LineTerminator
+- Comment
 
 Parser Implementations
 ----------------------
@@ -45,4 +148,4 @@ TODO
 Prior Art
 ---------
 
-The JSX syntax was derived from the [E4X Specification (ECMA-357)](http://www.ecma-international.org/publications/standards/Ecma-357.htm). E4X is a deprecated specification with deep reaching semantic meaning. JSX is a tiny subset of the E4X syntax with the addition of spread attributes. JSX is a stand-alone specification has no relation to the E4X specification.
+The JSX syntax was derived from the [E4X Specification (ECMA-357)](http://www.ecma-international.org/publications/standards/Ecma-357.htm). E4X is a deprecated specification with deep reaching semantic meaning. JSX largely overlaps with a tiny subset of the E4X syntax. However, JSX is a stand-alone specification has no relation to the E4X specification.
