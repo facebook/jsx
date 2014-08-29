@@ -142,7 +142,7 @@ Transpilers
 These are a set of transpilers that all conform to the JSX syntax but use different semantics on the output:
 
 - [JSXDOM](https://github.com/vjeux/jsxdom): Create DOM elements using JSX.
-- [Mercury JSX](https://github.com/Raynos/mercury-jsx): Create virtual-dom VNodes or VText using JSX. 
+- [Mercury JSX](https://github.com/Raynos/mercury-jsx): Create virtual-dom VNodes or VText using JSX.
 - [React JSX](http://facebook.github.io/react/docs/jsx-in-depth.html): Create ReactElements using JSX.
 
 NOTE: A conforming transpiler may choose to use a subset of the JSX syntax.
@@ -152,22 +152,67 @@ Why not Template Literals?
 
 [ECMAScript 6th Edition (ECMA-262)](http://people.mozilla.org/~jorendorff/es6-draft.html) introduces template literals which are intended to be used for embedding DSL in ECMAScript. Why not just use that instead of inventing a syntax that's not part of ECMAScript?
 
-ES6 template literals are a flexible way to embed alternate syntaxes into pure JS code. That said, the syntactical overhead of using template literals in lieu of JSX is significant. Compare:
+Template literals work well for long embedded DSLs. Unfortunately the syntax noise is substantial when you exit in and out of embedded arbitrary ECMAScript expressions with identifiers in scope.
 
-```js
-// JSX
-var box =
-  <Box>
-    {answerQuestion(<Answer value={false}>no</Answer>)}
-  </Box>;
-
-// ES6 template literal
+```
+// Template Literals
 var box = jsx`
   <${Box}>
-    ${answerQuestion(jsx`<${Answer} value=${false}>no</${Answer}>`)}
+    ${
+      shouldShowAnswer(user) ?
+      jsx`<${Answer} value=${false}>no</${Answer}>` :
+      jsx`
+        <${Box.Comment}>
+         Text Content
+        </${Box.Comment}>
+      `
+    }
   </${Box}>
 `;
 ```
+
+It would be possible to use template literals as a syntactic entry point and
+change the semantics inside the template literal to allow embedded scripts that can be evaluated in scope:
+
+```
+// Template Literals with embedded JSX
+var box = jsx`
+  <Box>
+    {
+      shouldShowAnswer(user) ?
+      <Answer value={false}>no</Answer> :
+      <Box.Comment>
+         Text Content
+      </Box.Comment>
+    }
+  </Box>
+`;
+```
+
+However, this would lead to further divergence. Tooling that is built around the assumptions imposed by template literals wouldn't work. It would undermine the meaning of template literals.
+
+Therefore it's better to introduce JSX as a new type of PrimaryExpression:
+
+```
+// JSX
+var box =
+  <Box>
+    {
+      shouldShowAnswer(user) ?
+      <Answer value={false}>no</Answer> :
+      <Box.Comment>
+         Text Content
+      </Box.Comment>
+    }
+  </Box>;
+```
+
+Template literals have defined semantics in how
+
+Why not JXON?
+-------------
+
+Another alternative would be to use object initializers (similar to [JXON](https://developer.mozilla.org/en-US/docs/JXON)). Unfortunately, the balanced braces do not give great syntactic hints for where an element starts and ends in large trees. Balanced named tags is a critical syntactic feature of the XML-style notation.
 
 Prior Art
 ---------
