@@ -1,5 +1,5 @@
-JSX
-===
+DRAFT: JSX Specification
+========================
 
 JSX is a XML-like syntax extension to ECMAScript without any defined semantics. It's NOT intended to be implemented by engines or browsers. It's intended to be used by various preprocessors (transpilers) to transform these tokens into standard ECMAScript.
 
@@ -32,15 +32,15 @@ JSXElement : 
 
 JSXSelfClosingElement :
 
-- `<` JSXElementName JSXAttributes<sub>opt</sub> JSXWhitespace<sub>opt</sub> `/` `>`
+- `<` JSXElementName JSXAttributes<sub>opt</sub> `/` `>`
 
 JSXOpeningElement :
 
-- `<` JSXElementName JSXAttributes<sub>opt</sub> JSXWhitespace<sub>opt</sub> `>`
+- `<` JSXElementName JSXAttributes<sub>opt</sub> `>`
 
 JSXClosingElement :
 
-- `<` `/` JSXElementName JSXWhitespace<sub>opt</sub> `>`
+- `<` `/` JSXElementName `>`
 
 JSXElementName :
 
@@ -50,17 +50,9 @@ JSXElementName :
 
 JSXIdentifier :
 
-- JSXIdentifierStart
-- JSXIdentifier JSXIdentifierPart
-
-JSXIdentifierStart :
-
-- IdentifierStart __but not `\` UnicodeEscapeSequence__
-
-JSXIdentifierPart :
-
-- IdentifierPart __but not `\` UnicodeEscapeSequence__
-- `-`
+- IdentifierStart
+- JSXIdentifier IdentifierPart
+- JSXIdentifier `-`
 
 JSXNamespacedName :
 
@@ -79,11 +71,11 @@ JSXAttributes : 
 
 JSXSpreadAttribute :
 
-- JSXWhitespace `{` `...` AssignmentExpression `}`
+- `{` `...` AssignmentExpression `}`
 
 JSXAttribute : 
 
-- JSXWhitespace JSXAttributeName JSXWhitespace<sub>opt</sub> `=` JSXWhitespace<sub>opt</sub> JSXAttributeValue
+- JSXAttributeName `=` JSXAttributeValue
 
 JSXAttributeName :
 
@@ -94,7 +86,6 @@ JSXAttributeValue : 
 
 - `"` JSXDoubleStringCharacters<sub>opt</sub> `"`
 - `'` JSXSingleStringCharacters<sub>opt</sub> `'`
-- `{` JSXWhitespace `}`
 - `{` AssignmentExpression `}`
 
 JSXDoubleStringCharacters : 
@@ -121,9 +112,9 @@ JSXChildren : 
 
 JSXChild :
 
-- JSXText JSXChildren<sub>opt</sub>
-- JSXElement JSXChildren<sub>opt</sub>
-- `{` JSXWhitespace<sub>opt</sub> `}`
+- JSXText
+- JSXElement
+- `{` `}`
 - `{` AssignmentExpression `}`
 
 JSXText :
@@ -136,17 +127,7 @@ JSXTextCharacter :
 
 __Whitespace and Comments__
 
-_JSX treats comments as whitespace where they are allowed._
-
-JSXWhitespace :
-
-- JSXWhitespacePart JSXWhitespace<sub>opt</sub>
-
-JSXWhitespacePart :
-
-- WhiteSpace
-- LineTerminator
-- Comment
+_JSX uses the same punctuators and braces as ECMAScript. WhiteSpace, LineTerminators and Comments are generally allowed between any punctuator or brace._
 
 Parser Implementations
 ----------------------
@@ -160,9 +141,11 @@ Transpilers
 
 These are a set of transpilers that all conform to the JSX syntax but use different semantics on the output:
 
-- [jsxdom](https://github.com/vjeux/jsxdom): Create DOM elements using JSX.
+- [JSXDOM](https://github.com/vjeux/jsxdom): Create DOM elements using JSX.
 - [Mercury JSX](https://github.com/Raynos/mercury-jsx): Create virtual-dom VNodes or VText using JSX. 
 - [React JSX](http://facebook.github.io/react/docs/jsx-in-depth.html): Create ReactElements using JSX.
+
+NOTE: A conforming transpiler may choose to use a subset of the JSX syntax.
 
 Why not Template Literals?
 --------------------------
@@ -185,8 +168,6 @@ var box = jsx`
   </${Box}>
 `;
 ```
-
-For performance, it also makes sense to use a specialized transform to avoid the runtime cost of parsing the tag strings. The semantics of JSX are defined by the transpiler, which sidesteps the need to perform any parsing at runtime.
 
 Prior Art
 ---------
