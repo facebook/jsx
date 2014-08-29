@@ -52,7 +52,7 @@ JSXIdentifier :
 
 - IdentifierStart
 - JSXIdentifier IdentifierPart
-- JSXIdentifier `-`
+- JSXIdentifier __NO WHITESPACE OR COMMENT__ `-`
 
 JSXNamespacedName :
 
