@@ -16,7 +16,9 @@ var index = React.createClass({
       <Site>
         <div className="hero">
           <div className="wrap">
-            <div className="text"><strong>JSX</strong></div>
+            <div className="text">
+              Draft: <strong>JSX Specification</strong>
+            </div>
             <div className="minitext">
               XML-like syntax extension to ECMAScript
             </div>
