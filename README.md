@@ -143,7 +143,24 @@ Why not Template Literals?
 
 [ECMAScript 6th Edition (ECMA-262)](http://people.mozilla.org/~jorendorff/es6-draft.html) introduces template literals which are intended to be used for embedding DSL in ECMAScript. Why not just use that instead of inventing a syntax that's not part of ECMAScript?
 
-TODO
+ES6 template literals are a flexible way to embed alternate syntaxes into pure JS code. That said, the syntactical overhead of using template literals in lieu of JSX is significant. Compare:
+
+```js
+// JSX
+var box =
+  <Box>
+    {answerQuestion(<Answer value={false}>no</Answer>)}
+  </Box>;
+
+// ES6 template literal
+var box = jsx`
+  <${Box}>
+    ${answerQuestion(jsx`<${Answer} value=${false}>no</${Answer}>`)}
+  </${Box}>
+`;
+```
+
+For performance, it also makes sense to use a specialized transform to avoid the runtime cost of parsing the tag strings. The semantics of JSX are defined by the transpiler, which sidesteps the need to perform any parsing at runtime.
 
 Prior Art
 ---------
