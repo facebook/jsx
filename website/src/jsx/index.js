@@ -8,7 +8,7 @@ var Prism = require('Prism');
 var Marked = require('Marked');
 var unindent = require('unindent');
 
-var readmeContent = require('./README.js');
+var readmeContent = require('../../README.js');
 
 var index = React.createClass({
   render: function() {

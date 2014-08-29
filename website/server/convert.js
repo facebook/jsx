@@ -30,7 +30,7 @@ function execute() {
     'module.exports = ' + backtickify(readme) + ';\n'
   );
 
-  fs.writeFileSync('./src/jsx/README.js', content);
+  fs.writeFileSync('./README.js', content);
 }
 
 if (argv.convert) {
