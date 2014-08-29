@@ -171,8 +171,7 @@ var box = jsx`
 `;
 ```
 
-It would be possible to use template literals as a syntactic entry point and
-change the semantics inside the template literal to allow embedded scripts that can be evaluated in scope:
+It would be possible to use template literals as a syntactic entry point and change the semantics inside the template literal to allow embedded scripts that can be evaluated in scope:
 
 ```
 // Template Literals with embedded JSX
@@ -189,9 +188,9 @@ var box = jsx`
 `;
 ```
 
-However, this would lead to further divergence. Tooling that is built around the assumptions imposed by template literals wouldn't work. It would undermine the meaning of template literals.
+However, this would lead to further divergence. Tooling that is built around the assumptions imposed by template literals wouldn't work. It would undermine the meaning of template literals. It would be necessary to define how JSX with the rest of the grammar within the template literal anyway.
 
-Therefore it's better to introduce JSX as a new type of PrimaryExpression:
+Therefore it's better to introduce JSX as an entirely new type of PrimaryExpression:
 
 ```
 // JSX
@@ -206,8 +205,6 @@ var box =
     }
   </Box>;
 ```
-
-Template literals have defined semantics in how
 
 Why not JXON?
 -------------
