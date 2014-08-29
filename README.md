@@ -108,7 +108,7 @@ JSXText :
 - JSXTextCharacter JSXText<sub>opt</sub>
 
 JSXTextCharacter :
-- SourceCharacter __but not one of `{` or `<`__
+- SourceCharacter __but not one of `{`, `<`, `>` or `}`__
 
 __Whitespace and Comments__
 
@@ -135,7 +135,7 @@ Transpilers
 These are a set of transpilers that all conform to the JSX syntax but use different semantics on the output:
 
 - [jsxdom](https://github.com/vjeux/jsxdom): Create DOM elements using JSX.
-- [Mercury JSX](https://github.com/Raynos/mercury-jsx): Create virtual-dom VNodes or VText using JSX. 
+- [Mercury JSX](https://github.com/Raynos/mercury-jsx): Create virtual-dom VNodes or VText using JSX.
 - [React JSX](http://facebook.github.io/react/docs/jsx-in-depth.html): Create ReactElements using JSX.
 
 Why not Template Literals?
