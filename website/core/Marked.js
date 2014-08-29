@@ -596,8 +596,7 @@ InlineLexer.prototype.output = function(src) {
     // tag
     if (cap = this.rules.tag.exec(src)) {
       src = src.substring(cap[0].length);
-      // TODO(alpert): Don't escape if sanitize is false
-      out.push(cap[0]);
+      out.push({ __tag: cap[0] });
       continue;
     }
 
@@ -671,6 +670,38 @@ InlineLexer.prototype.output = function(src) {
     if (src) {
       throw new
         Error('Infinite loop on byte: ' + src.charCodeAt(0));
+    }
+  }
+
+  // vjeux: Super hacky way to get <sub>...</sub> working.
+  // It doesn't support nested tags, spaces ...
+  if (!this.options.sanitize) {
+    var currentIndex = -1;
+    var currentTag = '';
+    for (var i = 0; i < out.length; ++i) {
+      if (out[i].__tag) {
+        if (currentIndex === -1) {
+          currentIndex = i;
+          currentTag = out[i].__tag
+            .substring(1, out[i].__tag.length - 1); // '<sub>' -> 'sub'
+        } else if (out[i].__tag === '</' + currentTag + '>') {
+          out.splice(
+            currentIndex,
+            i - currentIndex + 1,
+            React.DOM[currentTag]({}, out.slice(currentIndex + 1, i))
+          );
+          i = -1;
+          currentIndex = -1;
+          currentTag = '';
+        }
+      }
+    }
+  }
+
+  // If we didn't match the beginning and end, put it back as a string
+  for (var i = 0; i < out.length; ++i) {
+    if (out[i].__tag) {
+      out[i] = out[i].__tag;
     }
   }
 

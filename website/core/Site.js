@@ -13,7 +13,7 @@ var Site = React.createClass({
         <head>
           <meta charSet="utf-8" />
           <meta httpEquiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-          <title>jsx | Painless JavaScript Unit Testing</title>
+          <title>JSX | XML-like syntax extension to ECMAScript</title>
           <meta name="viewport" content="width=device-width" />
           <meta property="og:title" content="JSX | XML-like syntax extension to ECMAScript" />
           <meta property="og:type" content="website" />
