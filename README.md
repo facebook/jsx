@@ -29,6 +29,8 @@ Through a stand-alone specification, we make it easier for implementors of other
 
 It is our intention to claim minimal syntactic real estate while keeping the syntax concise and familiar. That way we leave the door open for other extensions.
 
+This specification does not attempt to comply with any XML or HTML specification. JSX is designed as an ECMAScript feature and the similarity to XML is only for familiarity.
+
 Syntax
 ------
 
@@ -203,7 +205,7 @@ var box = jsx`
 `;
 ```
 
-However, this would lead to further divergence. Tooling that is built around the assumptions imposed by template literals wouldn't work. It would undermine the meaning of template literals. It would be necessary to define how JSX with the rest of the grammar within the template literal anyway.
+However, this would lead to further divergence. Tooling that is built around the assumptions imposed by template literals wouldn't work. It would undermine the meaning of template literals. It would be necessary to define how JSX behaves within the rest of the ECMAScript grammar within the template literal anyway.
 
 Therefore it's better to introduce JSX as an entirely new type of PrimaryExpression:
 
