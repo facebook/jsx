@@ -77,6 +77,7 @@ JSXNamespacedName :
 
 JSXMemberExpression :
 
+- JSXIdentifier `.` JSXIdentifier
 - JSXMemberExpression `.` JSXIdentifier
 
 __Attributes__
