@@ -149,9 +149,9 @@ _JSX uses the same punctuators and braces as ECMAScript. WhiteSpace, LineTermina
 Parser Implementations
 ----------------------
 
-- [acorn-jsx](https://github.com/RReverser/acorn-jsx): A fork of acorn.
-- [esprima-fb](https://github.com/facebook/esprima): A fork of esprima.
-- [sweet-jsx](https://github.com/andreypopp/sweet-jsx): A sweet.js macro.
+- [acorn-jsx][acorn-jsx]: A fork of acorn.
+- [esprima-fb][esprima-fb]: A fork of esprima.
+- [sweet-jsx][sweet-jsx]: A sweet.js macro.
 
 Transpilers
 -----------
@@ -232,3 +232,93 @@ Prior Art
 ---------
 
 The JSX syntax is similar to the [E4X Specification (ECMA-357)](http://www.ecma-international.org/publications/standards/Ecma-357.htm). E4X is a deprecated specification with deep reaching semantic meaning. JSX partially overlaps with a tiny subset of the E4X syntax. However, JSX has no relation to the E4X specification.
+
+AST Format
+----------
+
+ECMAScript+JSX parsers ([esprima-fb][esprima-fb], [acorn-jsx][acorn-jsx]) return AST, conformant with [Mozilla AST format](https://developer.mozilla.org/en-US/docs/Mozilla/Projects/SpiderMonkey/Parser_API) and extended with following node types:
+
+__JSX Element__
+
+```
+interface XJSElement <: Expression {
+    type: "XJSElement",
+    openingElement: XJSOpeningElement,
+    children: [ Literal | XJSExpressionContainer | XJSElement ],
+    closingElement: XJSClosingElement | null
+}
+```
+
+__JSX Boundary Tags__
+
+```
+interface XJSOpeningElement <: Node {
+    type: "XJSOpeningElement",
+    name: XJSIdentifier | XJSMemberExpression | XJSNamespacedName,
+    attributes: [ XJSAttribute | XJSSpreadAttribute ],
+    selfClosing: boolean;
+}
+
+interface XJSClosingElement <: Node {
+    type: "XJSClosingElement",
+    name: XJSIdentifier | XJSMemberExpression | XJSNamespacedName
+}
+```
+
+__JSX Names__
+
+```
+interface XJSIdentifier <: Identifier {
+    type: "XJSIdentifier";
+}
+
+interface XJSMemberExpression <: Expression {
+    type: "XJSMemberExpression";
+    object: XJSMemberExpression | XJSIdentifier,
+    property: XJSIdentifier
+}
+
+interface XJSNamespacedName <: Expression {
+    type: "XJSNamespacedName";
+    namespace: XJSIdentifier,
+    name: XJSIdentifier
+}
+```
+
+__JSX Attributes__
+
+```
+interface XJSAttribute <: Node {
+    type: "XJSAttribute",
+    name: XJSIdentifier | XJSNamespacedName,
+    value: Literal | XJSExpressionContainer | XJSElement | null
+}
+
+// This is already used by ES6 parsers, but not included
+// in Mozilla's spec yet.
+interface SpreadElement <: Pattern {
+    type: "SpreadElement";
+    argument: Expression;
+}
+
+interface XJSSpreadAttribute <: SpreadElement {
+    type: "XJSSpreadAttribute";
+}
+```
+
+__JSX Expression Container__
+
+```
+interface XJSExpressionContainer <: Node {
+    type: "XJSExpressionContainer",
+    expression: Expression | XJSEmptyExpression;
+}
+
+interface XJSEmptyExpression <: Node {
+    type: "XJSEmptyExpression"
+}
+```
+
+[acorn-jsx]: https://github.com/RReverser/acorn-jsx
+[esprima-fb]: https://github.com/facebook/esprima
+[sweet-jsx]: https://github.com/andreypopp/sweet-jsx
