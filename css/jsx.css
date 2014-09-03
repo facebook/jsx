@@ -130,7 +130,7 @@ html * {
   font-family: 'source-code-pro', Menlo, 'Courier New', Consolas, monospace;
   font-size: 13px;
   line-height: 20px;
-  border-left: 4px solid #900FC7;
+  border-left: 4px solid #8A53A6;
   padding: 5px 10px;
   margin-left: 20px;
   background-color: rgba(176, 50, 226, 0.05);
@@ -283,7 +283,7 @@ h1:hover .hash-link, h2:hover .hash-link, h3:hover .hash-link, h4:hover .hash-li
 
 .nav-main .nav-site a.active {
   color: #fafafa;
-  border-bottom: 3px solid #900FC7;
+  border-bottom: 3px solid #8A53A6;
   background: #333;
 }
 
@@ -308,7 +308,7 @@ h1:hover .hash-link, h2:hover .hash-link, h3:hover .hash-link, h4:hover .hash-li
 }
 
 .hero {
-  background: #900FC7;
+  background: #8A53A6;
   padding: 50px 0;
   color: #FDF3E7;
   font-weight: 300;
@@ -340,7 +340,7 @@ h1:hover .hash-link, h2:hover .hash-link, h3:hover .hash-link, h4:hover .hash-li
 
 .buttons-unit .button {
   font-size: 24px;
-  background: #900FC7;
+  background: #8A53A6;
   color: #fafafa;
 }
 
