@@ -233,3 +233,12 @@ Prior Art
 ---------
 
 The JSX syntax is similar to the [E4X Specification (ECMA-357)](http://www.ecma-international.org/publications/standards/Ecma-357.htm). E4X is a deprecated specification with deep reaching semantic meaning. JSX partially overlaps with a tiny subset of the E4X syntax. However, JSX has no relation to the E4X specification.
+
+License
+-------
+
+Copyright (c) 2014, Facebook, Inc.
+All rights reserved.
+
+This work is licensed under a Creative Commons Attribution 4.0
+International License [http://creativecommons.org/licenses/by/4.0/].
