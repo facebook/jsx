@@ -236,34 +236,7 @@ The JSX syntax is similar to the [E4X Specification (ECMA-357)](http://www.ecma-
 AST Format
 ----------
 
-ECMAScript+JSX parsers ([esprima-fb][esprima-fb], [acorn-jsx][acorn-jsx]) return AST, conformant with [Mozilla AST format](https://developer.mozilla.org/en-US/docs/Mozilla/Projects/SpiderMonkey/Parser_API) and extended with following node types:
-
-__JSX Element__
-
-```
-interface XJSElement <: Expression {
-    type: "XJSElement",
-    openingElement: XJSOpeningElement,
-    children: [ Literal | XJSExpressionContainer | XJSElement ],
-    closingElement: XJSClosingElement | null
-}
-```
-
-__JSX Boundary Tags__
-
-```
-interface XJSOpeningElement <: Node {
-    type: "XJSOpeningElement",
-    name: XJSIdentifier | XJSMemberExpression | XJSNamespacedName,
-    attributes: [ XJSAttribute | XJSSpreadAttribute ],
-    selfClosing: boolean;
-}
-
-interface XJSClosingElement <: Node {
-    type: "XJSClosingElement",
-    name: XJSIdentifier | XJSMemberExpression | XJSNamespacedName
-}
-```
+JSX extends ECMAScript [Mozilla AST format](https://developer.mozilla.org/en-US/docs/Mozilla/Projects/SpiderMonkey/Parser_API) with following node types:
 
 __JSX Names__
 
@@ -272,16 +245,47 @@ interface XJSIdentifier <: Identifier {
     type: "XJSIdentifier";
 }
 
-interface XJSMemberExpression <: Expression {
+interface XJSNamespacedName <: Expression, Pattern {
+    type: "XJSNamespacedName";
+    namespace: XJSIdentifier,
+    name: XJSIdentifier
+}
+
+interface XJSMemberExpression <: Expression, Pattern {
     type: "XJSMemberExpression";
     object: XJSMemberExpression | XJSIdentifier,
     property: XJSIdentifier
 }
+```
 
-interface XJSNamespacedName <: Expression {
-    type: "XJSNamespacedName";
-    namespace: XJSIdentifier,
-    name: XJSIdentifier
+__JSX Expression Container__
+
+```
+interface XJSEmptyExpression <: Node {
+    type: "XJSEmptyExpression"
+}
+
+interface XJSExpressionContainer <: Node {
+    type: "XJSExpressionContainer",
+    expression: Expression | XJSEmptyExpression;
+}
+```
+
+__JSX Boundary Tags__
+
+```
+interface XJSBoundaryElement <: Node {
+    name: XJSIdentifier | XJSMemberExpression | XJSNamespacedName;
+}
+
+interface XJSOpeningElement <: XJSBoundaryElement {
+    type: "XJSOpeningElement",
+    attributes: [ XJSAttribute | XJSSpreadAttribute ],
+    selfClosing: boolean;
+}
+
+interface XJSClosingElement <: XJSBoundaryElement {
+    type: "XJSClosingElement"
 }
 ```
 
@@ -306,16 +310,14 @@ interface XJSSpreadAttribute <: SpreadElement {
 }
 ```
 
-__JSX Expression Container__
+__JSX Element__
 
 ```
-interface XJSExpressionContainer <: Node {
-    type: "XJSExpressionContainer",
-    expression: Expression | XJSEmptyExpression;
-}
-
-interface XJSEmptyExpression <: Node {
-    type: "XJSEmptyExpression"
+interface XJSElement <: Expression {
+    type: "XJSElement",
+    openingElement: XJSOpeningElement,
+    children: [ Literal | XJSExpressionContainer | XJSElement ],
+    closingElement: XJSClosingElement | null
 }
 ```
 
