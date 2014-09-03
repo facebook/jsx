@@ -321,6 +321,13 @@ interface XJSElement <: Expression {
 }
 ```
 
+__Tools that work with JSX AST__
+
+* Parsing: [acorn-jsx][acorn-jsx], [esprima-fb][esprima-fb].
+* Traversal: [estraverse-fb](https://github.com/RReverser/estraverse-fb).
+* Node creation and declarative traversal: [ast-types](https://github.com/benjamn/ast-types)
+* Transpiling to ECMAScript AST: [jsx-transpiler](https://github.com/RReverser/jsx-transpiler)
+
 [acorn-jsx]: https://github.com/RReverser/acorn-jsx
 [esprima-fb]: https://github.com/facebook/esprima
 [sweet-jsx]: https://github.com/andreypopp/sweet-jsx
