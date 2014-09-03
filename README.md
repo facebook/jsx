@@ -132,8 +132,7 @@ JSXChild :
 
 - JSXText
 - JSXElement
-- `{` `}`
-- `{` AssignmentExpression `}`
+- `{` AssignmentExpression<sub>opt</sub> `}`
 
 JSXText :
 
@@ -145,7 +144,7 @@ JSXTextCharacter :
 
 __Whitespace and Comments__
 
-_JSX uses the same punctuators and braces as ECMAScript. WhiteSpace, LineTerminators and Comments are generally allowed between any punctuator or brace._
+_JSX uses the same punctuators and braces as ECMAScript. WhiteSpace, LineTerminators and Comments are generally allowed between any punctuators._
 
 Parser Implementations
 ----------------------
