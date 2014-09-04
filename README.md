@@ -85,16 +85,12 @@ __Attributes__
 
 JSXAttributes : 
 
-- JSXSpreadAttribute JSXAttributes<sub>opt</sub>
 - JSXAttribute JSXAttributes<sub>opt</sub>
-
-JSXSpreadAttribute :
-
-- `{` `...` AssignmentExpression `}`
 
 JSXAttribute : 
 
 - JSXAttributeName `=` JSXAttributeValue
+- JSXSpreadAttribute
 
 JSXAttributeName :
 
@@ -106,6 +102,11 @@ JSXAttributeValue : 
 - `"` JSXDoubleStringCharacters<sub>opt</sub> `"`
 - `'` JSXSingleStringCharacters<sub>opt</sub> `'`
 - `{` AssignmentExpression `}`
+- JSXElement
+
+JSXSpreadAttribute :
+
+- `{` `...` AssignmentExpression `}`
 
 JSXDoubleStringCharacters : 
 
