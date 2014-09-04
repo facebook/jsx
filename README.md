@@ -106,6 +106,7 @@ JSXAttributeValue : 
 - `"` JSXDoubleStringCharacters<sub>opt</sub> `"`
 - `'` JSXSingleStringCharacters<sub>opt</sub> `'`
 - `{` AssignmentExpression `}`
+- JSXElement
 
 JSXDoubleStringCharacters : 
 
