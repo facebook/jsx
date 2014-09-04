@@ -151,6 +151,7 @@ Parser Implementations
 
 - [acorn-jsx](https://github.com/RReverser/acorn-jsx): A fork of acorn.
 - [esprima-fb](https://github.com/facebook/esprima): A fork of esprima.
+- [jsx-reader](https://github.com/jlongster/jsx-reader): A sweet.js macro.
 - [sweet-jsx](https://github.com/andreypopp/sweet-jsx): A sweet.js macro.
 
 Transpilers
