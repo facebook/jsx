@@ -124,3 +124,12 @@ Tools that work with JSX AST
 * Traversal: [estraverse-fb](https://github.com/RReverser/estraverse-fb).
 * Node creation and declarative traversal: [ast-types](https://github.com/benjamn/ast-types)
 * Transpiling to ECMAScript AST: [jsx-transpiler](https://github.com/RReverser/jsx-transpiler)
+
+License
+-------
+
+Copyright (c) 2014, Facebook, Inc.
+All rights reserved.
+
+This work is licensed under a [Creative Commons Attribution 4.0
+International License](http://creativecommons.org/licenses/by/4.0/).
