@@ -142,7 +142,7 @@ JSXText :
 
 JSXTextCharacter :
 
-- SourceCharacter __but not one of `{` or `<`__
+- SourceCharacter __but not one of `{`, `<`, `>` or `}`__
 
 __Whitespace and Comments__
 
