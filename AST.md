@@ -47,7 +47,7 @@ interface XJSEmptyExpression <: Node {
 }
 ```
 
-Any expression used as attribute value or inside JSX text should is wrapped into expression container:
+Any expression used as attribute name, value or inside JSX text should is wrapped into expression container:
 
 ```
 interface XJSExpressionContainer <: Node {
@@ -85,7 +85,7 @@ Opening element ("tag") may contain attributes:
 ```
 interface XJSAttribute <: Node {
     type: "XJSAttribute",
-    name: XJSIdentifier | XJSNamespacedName,
+    name: XJSIdentifier | XJSNamespacedName | XJSExpressionContainer,
     value: Literal | XJSExpressionContainer | XJSElement | null
 }
 
