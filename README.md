@@ -100,6 +100,7 @@ JSXAttributeName :
 
 - JSXIdentifier
 - JSXNamespacedName
+- `{` AssignmentExpression `}`
 
 JSXAttributeValue : 
 
