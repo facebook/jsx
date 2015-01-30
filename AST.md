@@ -9,8 +9,8 @@ JSX Names
 __JSX Identifier subtype__
 
 ```
-interface XJSIdentifier <: Identifier {
-    type: "XJSIdentifier";
+interface JSXIdentifier <: Identifier {
+    type: "JSXIdentifier";
 }
 ```
 
@@ -19,20 +19,20 @@ __Namespaced names__
 Property-like namespace syntax (tag names only):
 
 ```
-interface XJSMemberExpression <: Expression, Pattern {
-    type: "XJSMemberExpression";
-    object: XJSMemberExpression | XJSIdentifier,
-    property: XJSIdentifier
+interface JSXMemberExpression <: Expression {
+    type: "JSXMemberExpression";
+    object: JSXMemberExpression | JSXIdentifier,
+    property: JSXIdentifier
 }
 ```
 
 XML-based namespace syntax:
 
 ```
-interface XJSNamespacedName <: Expression, Pattern {
-    type: "XJSNamespacedName";
-    namespace: XJSIdentifier,
-    name: XJSIdentifier
+interface JSXNamespacedName <: Expression {
+    type: "JSXNamespacedName";
+    namespace: JSXIdentifier,
+    name: JSXIdentifier
 }
 ```
 
@@ -42,17 +42,17 @@ JSX Expression Container
 JSX adds empty "expression" type in order to allow comments in JSX text:
 
 ```
-interface XJSEmptyExpression <: Node {
-    type: "XJSEmptyExpression"
+interface JSXEmptyExpression <: Node {
+    type: "JSXEmptyExpression"
 }
 ```
 
 Any expression used as attribute value or inside JSX text should is wrapped into expression container:
 
 ```
-interface XJSExpressionContainer <: Node {
-    type: "XJSExpressionContainer",
-    expression: Expression | XJSEmptyExpression;
+interface JSXExpressionContainer <: Node {
+    type: "JSXExpressionContainer",
+    expression: Expression | JSXEmptyExpression;
 }
 ```
 
@@ -62,18 +62,18 @@ JSX Boundary Tags
 Any JSX element is bounded by tags &mdash; either self-closing or both opening and closing elements:
 
 ```
-interface XJSBoundaryElement <: Node {
-    name: XJSIdentifier | XJSMemberExpression | XJSNamespacedName;
+interface JSXBoundaryElement <: Node {
+    name: JSXIdentifier | JSXMemberExpression | JSXNamespacedName;
 }
 
-interface XJSOpeningElement <: XJSBoundaryElement {
-    type: "XJSOpeningElement",
-    attributes: [ XJSAttribute | XJSSpreadAttribute ],
+interface JSXOpeningElement <: JSXBoundaryElement {
+    type: "JSXOpeningElement",
+    attributes: [ JSXAttribute | JSXSpreadAttribute ],
     selfClosing: boolean;
 }
 
-interface XJSClosingElement <: XJSBoundaryElement {
-    type: "XJSClosingElement"
+interface JSXClosingElement <: JSXBoundaryElement {
+    type: "JSXClosingElement"
 }
 ```
 
@@ -83,21 +83,21 @@ JSX Attributes
 Opening element ("tag") may contain attributes:
 
 ```
-interface XJSAttribute <: Node {
-    type: "XJSAttribute",
-    name: XJSIdentifier | XJSNamespacedName,
-    value: Literal | XJSExpressionContainer | XJSElement | null
+interface JSXAttribute <: Node {
+    type: "JSXAttribute",
+    name: JSXIdentifier | JSXNamespacedName,
+    value: Literal | JSXExpressionContainer | JSXElement | null
 }
 
 // This is already used by ES6 parsers, but not included
 // in Mozilla's spec yet.
-interface SpreadElement <: Pattern {
+interface SpreadElement <: Node {
     type: "SpreadElement";
     argument: Expression;
 }
 
-interface XJSSpreadAttribute <: SpreadElement {
-    type: "XJSSpreadAttribute";
+interface JSXSpreadAttribute <: SpreadElement {
+    type: "JSXSpreadAttribute";
 }
 ```
 
@@ -107,11 +107,11 @@ JSX Element
 Finally, JSX element itself consists of opening element, list of children and optional closing element:
 
 ```
-interface XJSElement <: Expression {
-    type: "XJSElement",
-    openingElement: XJSOpeningElement,
-    children: [ Literal | XJSExpressionContainer | XJSElement ],
-    closingElement: XJSClosingElement | null
+interface JSXElement <: Expression {
+    type: "JSXElement",
+    openingElement: JSXOpeningElement,
+    children: [ Literal | JSXExpressionContainer | JSXElement ],
+    closingElement: JSXClosingElement | null
 }
 ```
 
