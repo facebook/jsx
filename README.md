@@ -13,7 +13,7 @@ var dropdown =
       <MenuItem>Do Something Fun!</MenuItem>
       <MenuItem>Do Something Else</MenuItem>
     </Menu>
-  </DropDown>;
+  </Dropdown>;
 
 render(dropdown);
 ```
