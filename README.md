@@ -63,7 +63,7 @@ JSXClosingElement :
 JSXElementName :
 
 - JSXIdentifier
-- JSXNamedspacedName
+- JSXNamespacedName
 - JSXMemberExpression
 
 JSXIdentifier :
