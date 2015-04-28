@@ -161,6 +161,7 @@ Transpilers
 These are a set of transpilers that all conform to the JSX syntax but use different semantics on the output:
 
 - [React JSX](http://facebook.github.io/react/docs/jsx-in-depth.html): Create ReactElements using JSX.
+- [jsx-transform](https://github.com/alexmingoia/jsx-transform): Configurable implementation of JSX decoupled from React.
 
 NOTE: A conforming transpiler may choose to use a subset of the JSX syntax.
 
