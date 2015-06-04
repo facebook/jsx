@@ -46,7 +46,7 @@ JSXElement : 
 
 - JSXSelfClosingElement 
 - JSXStartTag JSXChildren<sub>opt</sub> JSXEndTag<br />
-  (names of JSXStartTag and JSXEndTag should match)
+  (names of JSXStartTag and JSXEndTag must match)
 
 JSXSelfClosingElement :
 
