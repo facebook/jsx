@@ -45,18 +45,18 @@ __Elements__
 JSXElement : 
 
 - JSXSelfClosingElement 
-- JSXOpeningElement JSXChildren<sub>opt</sub> JSXClosingElement<br />
-  (names of JSXOpeningElement and JSXClosingElement should match)
+- JSXStartTag JSXChildren<sub>opt</sub> JSXEndTag<br />
+  (names of JSXStartTag and JSXEndTag must match)
 
 JSXSelfClosingElement :
 
 - `<` JSXElementName JSXAttributes<sub>opt</sub> `/` `>`
 
-JSXOpeningElement :
+JSXStartTag :
 
 - `<` JSXElementName JSXAttributes<sub>opt</sub> `>`
 
-JSXClosingElement :
+JSXEndTag :
 
 - `<` `/` JSXElementName `>`
 

@@ -56,31 +56,45 @@ interface JSXExpressionContainer <: Node {
 }
 ```
 
-JSX Boundary Tags
------------------
+JSX Element
+-----------
 
-Any JSX element is bounded by tags &mdash; either self-closing or both opening and closing elements:
+A JSX element consists of a start tag, a list of children, and an optional end tag:
 
 ```
-interface JSXBoundaryElement <: Node {
+interface JSXElement <: Expression {
+    type: "JSXElement",
+    startTag: JSXStartTag,
+    children: [ Literal | JSXExpressionContainer | JSXElement ],
+    endTag: JSXEndTag | null
+}
+```
+
+JSX Tags
+-----------------
+
+Any JSX element is delimited by tags &mdash; either self-closing or both start and end tags:
+
+```
+interface JSXTag <: Node {
     name: JSXIdentifier | JSXMemberExpression | JSXNamespacedName;
 }
 
-interface JSXOpeningElement <: JSXBoundaryElement {
-    type: "JSXOpeningElement",
+interface JSXStartTag <: JSXTag {
+    type: "JSXStartTag",
     attributes: [ JSXAttribute | JSXSpreadAttribute ],
     selfClosing: boolean;
 }
 
-interface JSXClosingElement <: JSXBoundaryElement {
-    type: "JSXClosingElement"
+interface JSXEndTag <: JSXTag {
+    type: "JSXEndTag"
 }
 ```
 
 JSX Attributes
 --------------
 
-Opening element ("tag") may contain attributes:
+Start tags may contain attributes:
 
 ```
 interface JSXAttribute <: Node {
@@ -98,20 +112,6 @@ interface SpreadElement <: Node {
 
 interface JSXSpreadAttribute <: SpreadElement {
     type: "JSXSpreadAttribute";
-}
-```
-
-JSX Element
------------
-
-Finally, JSX element itself consists of opening element, list of children and optional closing element:
-
-```
-interface JSXElement <: Expression {
-    type: "JSXElement",
-    openingElement: JSXOpeningElement,
-    children: [ Literal | JSXExpressionContainer | JSXElement ],
-    closingElement: JSXClosingElement | null
 }
 ```
 
