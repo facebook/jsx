@@ -50,7 +50,7 @@ JSXElement : 
 
 JSXSelfClosingElement :
 
-- `<` JSXElementName JSXAttributes<sub>opt</sub> `/>`
+- `<` JSXElementName JSXAttributes<sub>opt</sub> `/` `>`
 
 JSXStartTag :
 
@@ -58,7 +58,7 @@ JSXStartTag :
 
 JSXEndTag :
 
-- `</` JSXElementName `>`
+- `<` `/` JSXElementName `>`
 
 JSXElementName :
 
