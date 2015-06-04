@@ -160,9 +160,8 @@ Transpilers
 
 These are a set of transpilers that all conform to the JSX syntax but use different semantics on the output:
 
-- [JSXDOM](https://github.com/vjeux/jsxdom): Create DOM elements using JSX.
-- [Mercury JSX](https://github.com/Raynos/mercury-jsx): Create virtual-dom VNodes or VText using JSX.
 - [React JSX](http://facebook.github.io/react/docs/jsx-in-depth.html): Create ReactElements using JSX.
+- [jsx-transform](https://github.com/alexmingoia/jsx-transform): Configurable implementation of JSX decoupled from React.
 
 NOTE: A conforming transpiler may choose to use a subset of the JSX syntax.
 
