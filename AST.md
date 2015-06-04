@@ -1,7 +1,7 @@
 JSX extensions to Mozilla AST Format
 ====================================
 
-JSX extends ECMAScript [Mozilla AST format](https://developer.mozilla.org/en-US/docs/Mozilla/Projects/SpiderMonkey/Parser_API) with following node types:
+JSX extends ECMAScript [ESTree AST format](https://github.com/estree/estree) with the following node types:
 
 JSX Names
 ---------
@@ -119,7 +119,7 @@ Tools that work with JSX AST
 ----------------------------
 
 * Parsers:
-  - [acorn-jsx](https://github.com/RReverser/acorn-jsx): A fork of acorn.
+  - [acorn-jsx](https://github.com/RReverser/acorn-jsx): A plugin for acorn.
   - [esprima-fb](https://github.com/facebook/esprima): A fork of esprima.
 * Traversal: [estraverse-fb](https://github.com/RReverser/estraverse-fb).
 * Node creation and declarative traversal: [ast-types](https://github.com/benjamn/ast-types)
