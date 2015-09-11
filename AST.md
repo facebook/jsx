@@ -8,7 +8,7 @@ JSX Names
 
 __JSX Identifier subtype__
 
-```
+```js
 interface JSXIdentifier <: Identifier {
     type: "JSXIdentifier";
 }
@@ -18,7 +18,7 @@ __Namespaced names__
 
 Property-like namespace syntax (tag names only):
 
-```
+```js
 interface JSXMemberExpression <: Expression {
     type: "JSXMemberExpression";
     object: JSXMemberExpression | JSXIdentifier,
@@ -28,7 +28,7 @@ interface JSXMemberExpression <: Expression {
 
 XML-based namespace syntax:
 
-```
+```js
 interface JSXNamespacedName <: Expression {
     type: "JSXNamespacedName";
     namespace: JSXIdentifier,
@@ -41,7 +41,7 @@ JSX Expression Container
 
 JSX adds empty "expression" type in order to allow comments in JSX text:
 
-```
+```js
 interface JSXEmptyExpression <: Node {
     type: "JSXEmptyExpression"
 }
@@ -49,7 +49,7 @@ interface JSXEmptyExpression <: Node {
 
 Any expression used as attribute value or inside JSX text should is wrapped into expression container:
 
-```
+```js
 interface JSXExpressionContainer <: Node {
     type: "JSXExpressionContainer",
     expression: Expression | JSXEmptyExpression;
@@ -61,7 +61,7 @@ JSX Boundary Tags
 
 Any JSX element is bounded by tags &mdash; either self-closing or both opening and closing elements:
 
-```
+```js
 interface JSXBoundaryElement <: Node {
     name: JSXIdentifier | JSXMemberExpression | JSXNamespacedName;
 }
@@ -82,7 +82,7 @@ JSX Attributes
 
 Opening element ("tag") may contain attributes:
 
-```
+```js
 interface JSXAttribute <: Node {
     type: "JSXAttribute",
     name: JSXIdentifier | JSXNamespacedName,
@@ -106,7 +106,7 @@ JSX Element
 
 Finally, JSX element itself consists of opening element, list of children and optional closing element:
 
-```
+```js
 interface JSXElement <: Expression {
     type: "JSXElement",
     openingElement: JSXOpeningElement,
