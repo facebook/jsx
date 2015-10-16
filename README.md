@@ -162,6 +162,7 @@ These are a set of transpilers that all conform to the JSX syntax but use differ
 
 - [React JSX](http://facebook.github.io/react/docs/jsx-in-depth.html): Create ReactElements using JSX.
 - [jsx-transform](https://github.com/alexmingoia/jsx-transform): Configurable implementation of JSX decoupled from React.
+- [Babel](http://babeljs.io): An ES2015 and beyond to ES of now transpiler with JSX support.
 
 NOTE: A conforming transpiler may choose to use a subset of the JSX syntax.
 
