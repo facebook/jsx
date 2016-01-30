@@ -94,12 +94,16 @@ JSXSpreadAttribute :
 
 JSXAttribute : 
 
-- JSXAttributeName `=` JSXAttributeValue
+- JSXAttributeName JSXAttributeInitializer<sub>opt</sub>
 
 JSXAttributeName :
 
 - JSXIdentifier
 - JSXNamespacedName
+
+JSXAttributeInitializer : 
+
+- `=` JSXAttributeValue
 
 JSXAttributeValue : 
 
