@@ -21,7 +21,7 @@ Property-like namespace syntax (tag names only):
 ```js
 interface JSXMemberExpression <: Expression {
     type: "JSXMemberExpression";
-    object: JSXMemberExpression | JSXIdentifier,
+    object: JSXIdentifier | JSXMemberExpression | JSXNamespacedName,
     property: JSXIdentifier
 }
 ```
