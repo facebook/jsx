@@ -138,7 +138,7 @@ JSXChild :
 
 - JSXText
 - JSXElement
-- `{` AssignmentExpression<sub>opt</sub> `}`
+- `{` JSXChildExpression `}`
 
 JSXText :
 
@@ -147,6 +147,11 @@ JSXText :
 JSXTextCharacter :
 
 - SourceCharacter __but not one of `{`, `<`, `>` or `}`__
+
+JSXChildExpression :
+
+- AssignmentExpression<sub>opt</sub>
+- `...` AssignmentExpression
 
 __Whitespace and Comments__
 
