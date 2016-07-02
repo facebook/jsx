@@ -17,6 +17,20 @@ var dropdown =
 
 render(dropdown);
 ```
+Indented Mode
+```
+// Using JSX to express UI components.
+var dropdown =
+  <Dropdown>
+    A dropdown list
+    <Menu>
+      <MenuItem>Do Something
+      <MenuItem>Do Something Fun!
+      <MenuItem>Do Something Else
+      
+render(dropdown);
+```
+------
 
 Rationale
 ---------
