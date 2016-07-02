@@ -56,6 +56,15 @@ interface JSXExpressionContainer <: Node {
 }
 ```
 
+A JSX element uses a special form of an expression container for an iterator child who should be “spread out” inside an element’s children list:
+
+```js
+interface JSXSpreadChild <: Node {
+    type: "JSXSpreadChild",
+    expression: Expression
+}
+```
+
 JSX Boundary Tags
 -----------------
 
@@ -110,7 +119,7 @@ Finally, JSX element itself consists of opening element, list of children and op
 interface JSXElement <: Expression {
     type: "JSXElement",
     openingElement: JSXOpeningElement,
-    children: [ Literal | JSXExpressionContainer | JSXElement ],
+    children: [ Literal | JSXExpressionContainer | JSXSpreadChild | JSXElement ],
     closingElement: JSXClosingElement | null
 }
 ```
