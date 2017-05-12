@@ -128,11 +128,12 @@ Tools that work with JSX AST
 ----------------------------
 
 * Parsers:
+  - [babylon](https://github.com/babel/babylon)
+  - [flow-parser](https://www.npmjs.com/package/flow-parser)
+  - [typescript](https://www.typescriptlang.org/docs/handbook/jsx.html)
+  - [esprima](https://esprima.readthedocs.io/en/latest/syntactic-analysis.html#jsx-syntax-support)
   - [acorn-jsx](https://github.com/RReverser/acorn-jsx): A plugin for acorn.
-  - [esprima-fb](https://github.com/facebook/esprima): A fork of esprima.
-* Traversal: [estraverse-fb](https://github.com/RReverser/estraverse-fb).
 * Node creation and declarative traversal: [ast-types](https://github.com/benjamn/ast-types)
-* Transpiling to ECMAScript AST: [jsx-transpiler](https://github.com/RReverser/jsx-transpiler)
 
 License
 -------
