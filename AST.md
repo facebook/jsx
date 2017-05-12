@@ -110,6 +110,19 @@ interface JSXSpreadAttribute <: SpreadElement {
 }
 ```
 
+JSX Text
+--------
+
+JSX Text node stores a string literal found in JSX element children.
+
+```js
+interface JSXText <: Node {
+  type: "JSXText"
+  value: string,
+  raw: string
+}
+```
+
 JSX Element
 -----------
 
