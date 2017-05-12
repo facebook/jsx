@@ -119,7 +119,7 @@ Finally, JSX element itself consists of opening element, list of children and op
 interface JSXElement <: Expression {
     type: "JSXElement",
     openingElement: JSXOpeningElement,
-    children: [ Literal | JSXExpressionContainer | JSXSpreadChild | JSXElement ],
+    children: [ JSXText | JSXExpressionContainer | JSXSpreadChild | JSXElement ],
     closingElement: JSXClosingElement | null
 }
 ```
