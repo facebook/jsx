@@ -73,12 +73,13 @@ Any JSX element is bounded by tags &mdash; either self-closing or both opening a
 ```js
 interface JSXBoundaryElement <: Node {
     name: JSXIdentifier | JSXMemberExpression | JSXNamespacedName;
+    isFragment: boolean;
 }
 
 interface JSXOpeningElement <: JSXBoundaryElement {
     type: "JSXOpeningElement",
     attributes: [ JSXAttribute | JSXSpreadAttribute ],
-    selfClosing: boolean;
+    selfClosing: boolean; // if this is true, isFragment must be false, and vice-versa
 }
 
 interface JSXClosingElement <: JSXBoundaryElement {
@@ -133,7 +134,8 @@ interface JSXElement <: Expression {
     type: "JSXElement",
     openingElement: JSXOpeningElement,
     children: [ JSXText | JSXExpressionContainer | JSXSpreadChild | JSXElement ],
-    closingElement: JSXClosingElement | null
+    closingElement: JSXClosingElement | null,
+    isFragment: boolean;
 }
 ```
 

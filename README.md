@@ -51,10 +51,12 @@ JSXElement : 
 JSXSelfClosingElement :
 
 - `<` JSXElementName JSXAttributes<sub>opt</sub> `/` `>`
+  (isFragment cannot be true if selfClosing)
 
 JSXOpeningElement :
 
 - `<` JSXElementName JSXAttributes<sub>opt</sub> `>`
+  (no JSXAttributes allowed if isFragment is true)
 
 JSXClosingElement :
 
