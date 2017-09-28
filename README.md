@@ -63,14 +63,7 @@ JSXClosingElement :
 
 JSXFragment :
 
-- JSXOpeningFragment JSXChildren<sub>opt</sub> JSXClosingFragment
-
-JSXOpeningFragment :
-
-- `<>`
-
-JSXClosingFragment :
-- `</>`
+- <> JSXChildren<sub>opt</sub> </>
 
 JSXElementName :
 
