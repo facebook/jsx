@@ -73,13 +73,12 @@ Any JSX element is bounded by tags &mdash; either self-closing or both opening a
 ```js
 interface JSXBoundaryElement <: Node {
     name: JSXIdentifier | JSXMemberExpression | JSXNamespacedName;
-    isFragment: boolean;
 }
 
 interface JSXOpeningElement <: JSXBoundaryElement {
     type: "JSXOpeningElement",
     attributes: [ JSXAttribute | JSXSpreadAttribute ],
-    selfClosing: boolean; // if this is true, isFragment must be false, and vice-versa
+    selfClosing: boolean;
 }
 
 interface JSXClosingElement <: JSXBoundaryElement {
@@ -127,15 +126,40 @@ interface JSXText <: Node {
 JSX Element
 -----------
 
-Finally, JSX element itself consists of opening element, list of children and optional closing element:
+JSX element itself consists of opening element, list of children and optional closing element:
 
 ```js
 interface JSXElement <: Expression {
     type: "JSXElement",
     openingElement: JSXOpeningElement,
-    children: [ JSXText | JSXExpressionContainer | JSXSpreadChild | JSXElement ],
-    closingElement: JSXClosingElement | null,
-    isFragment: boolean;
+    children: [ JSXText | JSXExpressionContainer | JSXSpreadChild | JSXElement | JSXFragment ];
+    closingElement: JSXClosingElement | null;
+}
+```
+
+JSX Fragment
+------------
+
+JSX fragment itself consists of an opening fragment, list of children, and closing fragment:
+
+```js
+interface JSXFragment <: Expression {
+    type: "JSXFragment";
+    openingFragment: JSXOpeningFragment;
+    children: [ JSXText | JSXExpressionContainer | JSXSpreadChild | JSXElement | JSXFragment ];
+    closingFragment: JSXClosingFragment;
+}
+```
+
+```js
+interface JSXOpeningFragment <: Node {
+    type: "JSXOpeningFragment";
+}
+```
+
+```js
+interface JSXClosingFragment <: Node {
+    type: "JSXClosingFragment";
 }
 ```
 
