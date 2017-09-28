@@ -63,7 +63,7 @@ JSXClosingElement :
 
 JSXFragment :
 
-- <> JSXChildren<sub>opt</sub> </>
+- `<` `>` JSXChildren<sub>opt</sub> `<` `/` `>`
 
 JSXElementName :
 
