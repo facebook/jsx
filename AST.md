@@ -21,8 +21,8 @@ Property-like namespace syntax (tag names only):
 ```js
 interface JSXMemberExpression <: Expression {
     type: "JSXMemberExpression";
-    object: JSXMemberExpression | JSXIdentifier,
-    property: JSXIdentifier
+    object: JSXMemberExpression | JSXIdentifier;
+    property: JSXIdentifier;
 }
 ```
 
@@ -31,8 +31,8 @@ XML-based namespace syntax:
 ```js
 interface JSXNamespacedName <: Expression {
     type: "JSXNamespacedName";
-    namespace: JSXIdentifier,
-    name: JSXIdentifier
+    namespace: JSXIdentifier;
+    name: JSXIdentifier;
 }
 ```
 
@@ -43,7 +43,7 @@ JSX adds empty "expression" type in order to allow comments in JSX text:
 
 ```js
 interface JSXEmptyExpression <: Node {
-    type: "JSXEmptyExpression"
+    type: "JSXEmptyExpression";
 }
 ```
 
@@ -51,7 +51,7 @@ Any expression used as attribute value or inside JSX text should is wrapped into
 
 ```js
 interface JSXExpressionContainer <: Node {
-    type: "JSXExpressionContainer",
+    type: "JSXExpressionContainer";
     expression: Expression | JSXEmptyExpression;
 }
 ```
@@ -60,8 +60,8 @@ A JSX element uses a special form of an expression container for an iterator chi
 
 ```js
 interface JSXSpreadChild <: Node {
-    type: "JSXSpreadChild",
-    expression: Expression
+    type: "JSXSpreadChild";
+    expression: Expression;
 }
 ```
 
@@ -76,13 +76,13 @@ interface JSXBoundaryElement <: Node {
 }
 
 interface JSXOpeningElement <: JSXBoundaryElement {
-    type: "JSXOpeningElement",
-    attributes: [ JSXAttribute | JSXSpreadAttribute ],
+    type: "JSXOpeningElement";
+    attributes: [ JSXAttribute | JSXSpreadAttribute ];
     selfClosing: boolean;
 }
 
 interface JSXClosingElement <: JSXBoundaryElement {
-    type: "JSXClosingElement"
+    type: "JSXClosingElement";
 }
 ```
 
@@ -93,9 +93,9 @@ Opening element ("tag") may contain attributes:
 
 ```js
 interface JSXAttribute <: Node {
-    type: "JSXAttribute",
-    name: JSXIdentifier | JSXNamespacedName,
-    value: Literal | JSXExpressionContainer | JSXElement | null
+    type: "JSXAttribute";
+    name: JSXIdentifier | JSXNamespacedName;
+    value: Literal | JSXExpressionContainer | JSXElement | null;
 }
 
 // This is already used by ES6 parsers, but not included
@@ -117,9 +117,9 @@ JSX Text node stores a string literal found in JSX element children.
 
 ```js
 interface JSXText <: Node {
-  type: "JSXText"
-  value: string,
-  raw: string
+  type: "JSXText";
+  value: string;
+  raw: string;
 }
 ```
 
@@ -130,8 +130,8 @@ JSX element itself consists of opening element, list of children and optional cl
 
 ```js
 interface JSXElement <: Expression {
-    type: "JSXElement",
-    openingElement: JSXOpeningElement,
+    type: "JSXElement";
+    openingElement: JSXOpeningElement;
     children: [ JSXText | JSXExpressionContainer | JSXSpreadChild | JSXElement | JSXFragment ];
     closingElement: JSXClosingElement | null;
 }
@@ -177,7 +177,7 @@ Tools that work with JSX AST
 License
 -------
 
-Copyright (c) 2014, Facebook, Inc.
+Copyright (c) 2014 - present, Facebook, Inc.
 All rights reserved.
 
 This work is licensed under a [Creative Commons Attribution 4.0

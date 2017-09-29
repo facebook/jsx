@@ -3,7 +3,7 @@ DRAFT: JSX Specification
 
 JSX is an XML-like syntax extension to ECMAScript without any defined semantics. It's NOT intended to be implemented by engines or browsers. __It's NOT a proposal to incorporate JSX into the ECMAScript spec itself.__ It's intended to be used by various preprocessors (transpilers) to transform these tokens into standard ECMAScript.
 
-```
+```jsx
 // Using JSX to express UI components.
 var dropdown =
   <Dropdown>
@@ -34,7 +34,7 @@ This specification does not attempt to comply with any XML or HTML specification
 Syntax
 ------
 
-_JSX extends the PrimaryExpression in the [ECMAScript 6th Edition (ECMA-262)](http://people.mozilla.org/~jorendorff/es6-draft.html) grammar:_
+_JSX extends the PrimaryExpression in the [ECMAScript 6th Edition (ECMA-262)](https://www.ecma-international.org/ecma-262/8.0/index.html) grammar:_
 
 PrimaryExpression :
 
@@ -183,11 +183,11 @@ NOTE: A conforming transpiler may choose to use a subset of the JSX syntax.
 Why not Template Literals?
 --------------------------
 
-[ECMAScript 6th Edition (ECMA-262)](http://people.mozilla.org/~jorendorff/es6-draft.html) introduces template literals which are intended to be used for embedding DSL in ECMAScript. Why not just use that instead of inventing a syntax that's not part of ECMAScript?
+[ECMAScript 6th Edition (ECMA-262)](https://www.ecma-international.org/ecma-262/8.0/index.html) introduces template literals which are intended to be used for embedding DSL in ECMAScript. Why not just use that instead of inventing a syntax that's not part of ECMAScript?
 
 Template literals work well for long embedded DSLs. Unfortunately the syntax noise is substantial when you exit in and out of embedded arbitrary ECMAScript expressions with identifiers in scope.
 
-```
+```jsx
 // Template Literals
 var box = jsx`
   <${Box}>
@@ -206,7 +206,7 @@ var box = jsx`
 
 It would be possible to use template literals as a syntactic entry point and change the semantics inside the template literal to allow embedded scripts that can be evaluated in scope:
 
-```
+```jsx
 // Template Literals with embedded JSX
 var box = jsx`
   <Box>
@@ -225,7 +225,7 @@ However, this would lead to further divergence. Tooling that is built around the
 
 Therefore it's better to introduce JSX as an entirely new type of PrimaryExpression:
 
-```
+```jsx
 // JSX
 var box =
   <Box>
@@ -252,7 +252,7 @@ The JSX syntax is similar to the [E4X Specification (ECMA-357)](http://www.ecma-
 License
 -------
 
-Copyright (c) 2014, Facebook, Inc.
+Copyright (c) 2014 - present, Facebook, Inc.
 All rights reserved.
 
 This work is licensed under a [Creative Commons Attribution 4.0
