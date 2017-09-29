@@ -3,7 +3,7 @@ DRAFT: JSX Specification
 
 JSX is an XML-like syntax extension to ECMAScript without any defined semantics. It's NOT intended to be implemented by engines or browsers. __It's NOT a proposal to incorporate JSX into the ECMAScript spec itself.__ It's intended to be used by various preprocessors (transpilers) to transform these tokens into standard ECMAScript.
 
-```
+```jsx
 // Using JSX to express UI components.
 var dropdown =
   <Dropdown>
@@ -182,7 +182,7 @@ Why not Template Literals?
 
 Template literals work well for long embedded DSLs. Unfortunately the syntax noise is substantial when you exit in and out of embedded arbitrary ECMAScript expressions with identifiers in scope.
 
-```
+```jsx
 // Template Literals
 var box = jsx`
   <${Box}>
@@ -201,7 +201,7 @@ var box = jsx`
 
 It would be possible to use template literals as a syntactic entry point and change the semantics inside the template literal to allow embedded scripts that can be evaluated in scope:
 
-```
+```jsx
 // Template Literals with embedded JSX
 var box = jsx`
   <Box>
@@ -220,7 +220,7 @@ However, this would lead to further divergence. Tooling that is built around the
 
 Therefore it's better to introduce JSX as an entirely new type of PrimaryExpression:
 
-```
+```jsx
 // JSX
 var box =
   <Box>
