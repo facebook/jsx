@@ -126,7 +126,7 @@ interface JSXText <: Node {
 JSX Element
 -----------
 
-JSX element itself consists of opening element, list of children and optional closing element:
+JSX element consists of opening element, list of children and optional closing element:
 
 ```js
 interface JSXElement <: Expression {
@@ -140,7 +140,7 @@ interface JSXElement <: Expression {
 JSX Fragment
 ------------
 
-JSX fragment itself consists of an opening fragment, list of children, and closing fragment:
+JSX fragment consists of an opening fragment, list of children, and closing fragment:
 
 ```js
 interface JSXFragment <: Expression {
