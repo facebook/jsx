@@ -1,9 +1,9 @@
 DRAFT: JSX Specification
 ========================
 
-JSX is a XML-like syntax extension to ECMAScript without any defined semantics. It's NOT intended to be implemented by engines or browsers. __It's NOT a proposal to incorporate JSX into the ECMAScript spec itself.__ It's intended to be used by various preprocessors (transpilers) to transform these tokens into standard ECMAScript.
+JSX is an XML-like syntax extension to ECMAScript without any defined semantics. It's NOT intended to be implemented by engines or browsers. __It's NOT a proposal to incorporate JSX into the ECMAScript spec itself.__ It's intended to be used by various preprocessors (transpilers) to transform these tokens into standard ECMAScript.
 
-```
+```jsx
 // Using JSX to express UI components.
 var dropdown =
   <Dropdown>
@@ -34,11 +34,12 @@ This specification does not attempt to comply with any XML or HTML specification
 Syntax
 ------
 
-_JSX extends the PrimaryExpression in the [ECMAScript 6th Edition (ECMA-262)](http://people.mozilla.org/~jorendorff/es6-draft.html) grammar:_
+_JSX extends the PrimaryExpression in the [ECMAScript 6th Edition (ECMA-262)](https://www.ecma-international.org/ecma-262/8.0/index.html) grammar:_
 
 PrimaryExpression :
 
 - JSXElement
+- JSXFragment
 
 __Elements__
 
@@ -60,10 +61,14 @@ JSXClosingElement :
 
 - `<` `/` JSXElementName `>`
 
+JSXFragment :
+
+- `<` `>` JSXChildren<sub>opt</sub> `<` `/` `>`
+
 JSXElementName :
 
 - JSXIdentifier
-- JSXNamedspacedName
+- JSXNamespacedName
 - JSXMemberExpression
 
 JSXIdentifier :
@@ -94,12 +99,16 @@ JSXSpreadAttribute :
 
 JSXAttribute : 
 
-- JSXAttributeName `=` JSXAttributeValue
+- JSXAttributeName JSXAttributeInitializer<sub>opt</sub>
 
 JSXAttributeName :
 
 - JSXIdentifier
 - JSXNamespacedName
+
+JSXAttributeInitializer : 
+
+- `=` JSXAttributeValue
 
 JSXAttributeValue : 
 
@@ -134,7 +143,7 @@ JSXChild :
 
 - JSXText
 - JSXElement
-- `{` AssignmentExpression<sub>opt</sub> `}`
+- `{` JSXChildExpression<sub>opt</sub> `}`
 
 JSXText :
 
@@ -143,6 +152,11 @@ JSXText :
 JSXTextCharacter :
 
 - SourceCharacter __but not one of `{`, `<`, `>` or `}`__
+
+JSXChildExpression :
+
+- AssignmentExpression
+- `...` AssignmentExpression
 
 __Whitespace and Comments__
 
@@ -160,20 +174,20 @@ Transpilers
 
 These are a set of transpilers that all conform to the JSX syntax but use different semantics on the output:
 
-- [JSXDOM](https://github.com/vjeux/jsxdom): Create DOM elements using JSX.
-- [Mercury JSX](https://github.com/Raynos/mercury-jsx): Create virtual-dom VNodes or VText using JSX.
 - [React JSX](http://facebook.github.io/react/docs/jsx-in-depth.html): Create ReactElements using JSX.
+- [jsx-transform](https://github.com/alexmingoia/jsx-transform): Configurable implementation of JSX decoupled from React.
+- [Babel](http://babeljs.io): An ES2015 and beyond to ES of now transpiler with JSX support.
 
 NOTE: A conforming transpiler may choose to use a subset of the JSX syntax.
 
 Why not Template Literals?
 --------------------------
 
-[ECMAScript 6th Edition (ECMA-262)](http://people.mozilla.org/~jorendorff/es6-draft.html) introduces template literals which are intended to be used for embedding DSL in ECMAScript. Why not just use that instead of inventing a syntax that's not part of ECMAScript?
+[ECMAScript 6th Edition (ECMA-262)](https://www.ecma-international.org/ecma-262/8.0/index.html) introduces template literals which are intended to be used for embedding DSL in ECMAScript. Why not just use that instead of inventing a syntax that's not part of ECMAScript?
 
 Template literals work well for long embedded DSLs. Unfortunately the syntax noise is substantial when you exit in and out of embedded arbitrary ECMAScript expressions with identifiers in scope.
 
-```
+```jsx
 // Template Literals
 var box = jsx`
   <${Box}>
@@ -192,7 +206,7 @@ var box = jsx`
 
 It would be possible to use template literals as a syntactic entry point and change the semantics inside the template literal to allow embedded scripts that can be evaluated in scope:
 
-```
+```jsx
 // Template Literals with embedded JSX
 var box = jsx`
   <Box>
@@ -211,7 +225,7 @@ However, this would lead to further divergence. Tooling that is built around the
 
 Therefore it's better to introduce JSX as an entirely new type of PrimaryExpression:
 
-```
+```jsx
 // JSX
 var box =
   <Box>
@@ -233,12 +247,12 @@ Another alternative would be to use object initializers (similar to [JXON](https
 Prior Art
 ---------
 
-The JSX syntax is similar to the [E4X Specification (ECMA-357)](http://www.ecma-international.org/publications/standards/Ecma-357.htm). E4X is a deprecated specification with deep reaching semantic meaning. JSX partially overlaps with a tiny subset of the E4X syntax. However, JSX has no relation to the E4X specification.
+The JSX syntax is similar to the [E4X Specification (ECMA-357)](http://www.ecma-international.org/publications/files/ECMA-ST-WITHDRAWN/Ecma-357.pdf). E4X is a deprecated specification with deep reaching semantic meaning. JSX partially overlaps with a tiny subset of the E4X syntax. However, JSX has no relation to the E4X specification.
 
 License
 -------
 
-Copyright (c) 2014, Facebook, Inc.
+Copyright (c) 2014 - present, Facebook, Inc.
 All rights reserved.
 
 This work is licensed under a [Creative Commons Attribution 4.0
