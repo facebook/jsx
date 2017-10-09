@@ -39,6 +39,7 @@ _JSX extends the PrimaryExpression in the [ECMAScript 6th Edition (ECMA-262)](ht
 PrimaryExpression :
 
 - JSXElement
+- JSXFragment
 
 __Elements__
 
@@ -59,6 +60,10 @@ JSXOpeningElement :
 JSXClosingElement :
 
 - `<` `/` JSXElementName `>`
+
+JSXFragment :
+
+- `<` `>` JSXChildren<sub>opt</sub> `<` `/` `>`
 
 JSXElementName :
 

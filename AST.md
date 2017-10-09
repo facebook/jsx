@@ -126,14 +126,40 @@ interface JSXText <: Node {
 JSX Element
 -----------
 
-Finally, JSX element itself consists of opening element, list of children and optional closing element:
+JSX element consists of opening element, list of children and optional closing element:
 
 ```js
 interface JSXElement <: Expression {
     type: "JSXElement";
     openingElement: JSXOpeningElement;
-    children: [ JSXText | JSXExpressionContainer | JSXSpreadChild | JSXElement ];
+    children: [ JSXText | JSXExpressionContainer | JSXSpreadChild | JSXElement | JSXFragment ];
     closingElement: JSXClosingElement | null;
+}
+```
+
+JSX Fragment
+------------
+
+JSX fragment consists of an opening fragment, list of children, and closing fragment:
+
+```js
+interface JSXFragment <: Expression {
+    type: "JSXFragment";
+    openingFragment: JSXOpeningFragment;
+    children: [ JSXText | JSXExpressionContainer | JSXSpreadChild | JSXElement | JSXFragment ];
+    closingFragment: JSXClosingFragment;
+}
+```
+
+```js
+interface JSXOpeningFragment <: Node {
+    type: "JSXOpeningFragment";
+}
+```
+
+```js
+interface JSXClosingFragment <: Node {
+    type: "JSXClosingFragment";
 }
 ```
 
