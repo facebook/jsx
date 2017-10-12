@@ -95,7 +95,7 @@ Opening element ("tag") may contain attributes:
 interface JSXAttribute <: Node {
     type: "JSXAttribute";
     name: JSXIdentifier | JSXNamespacedName;
-    value: Literal | JSXExpressionContainer | JSXElement | null;
+    value: Literal | JSXExpressionContainer | JSXElement | JSXFragment | null;
 }
 
 // This is already used by ES6 parsers, but not included
