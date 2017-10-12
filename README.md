@@ -116,6 +116,7 @@ JSXAttributeValue : 
 - `'` JSXSingleStringCharacters<sub>opt</sub> `'`
 - `{` AssignmentExpression `}`
 - JSXElement
+- JSXFragment
 
 JSXDoubleStringCharacters : 
 
