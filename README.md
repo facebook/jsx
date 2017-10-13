@@ -144,6 +144,7 @@ JSXChild :
 
 - JSXText
 - JSXElement
+- JSXFragment
 - `{` JSXChildExpression<sub>opt</sub> `}`
 
 JSXText :
