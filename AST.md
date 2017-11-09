@@ -47,12 +47,22 @@ interface JSXEmptyExpression <: Node {
 }
 ```
 
-Any expression used as attribute value or inside JSX text should is wrapped into expression container:
+The expression container node contains statements with the same grammar as a generator body. Also it has a flag to indicate whether it is an expression. Any expression used as attribute value or inside JSX text should is wrapped into expression container:
 
 ```js
 interface JSXExpressionContainer <: Node {
     type: "JSXExpressionContainer";
-    expression: Expression | JSXEmptyExpression;
+    expression: Expression | JSXEmptyExpression | JSXBlockStatement;
+    isExpression: boolean;
+}
+```
+
+From `BlockStatement`, this inherits `body: [ Statement ];`.
+
+```js
+interface JSXBlockStatement <: BlockStatement {
+  type: "JSXStatementList";
+  generator: boolean;
 }
 ```
 
