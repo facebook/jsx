@@ -39,20 +39,21 @@ interface JSXNamespacedName <: Expression {
 JSX Expression Container
 ------------------------
 
-JSX adds empty "expression" type in order to allow comments in JSX text:
-
-```js
-interface JSXEmptyExpression <: Node {
-    type: "JSXEmptyExpression";
-}
-```
-
-Any expression used as attribute value or inside JSX text should is wrapped into expression container:
+The expression container node contains statements with the same grammar as a generator body. Also it has a flag to indicate whether it is an expression. Any expression used as attribute value or inside JSX text should be wrapped by expression container:
 
 ```js
 interface JSXExpressionContainer <: Node {
     type: "JSXExpressionContainer";
-    expression: Expression | JSXEmptyExpression;
+    expression: Expression | JSXEmptyExpression | JSXStatementList;
+    isExpression: boolean;
+}
+```
+
+```js
+interface JSXStatementList <: Node {
+  type: "JSXStatementList";
+  body: [ Statement ];
+  generator: boolean;
 }
 ```
 

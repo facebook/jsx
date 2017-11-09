@@ -40,6 +40,7 @@ PrimaryExpression :
 
 - JSXElement
 - JSXFragment
+- JSXGeneratorExpression
 
 __Elements__
 
@@ -114,9 +115,18 @@ JSXAttributeValue : 
 
 - `"` JSXDoubleStringCharacters<sub>opt</sub> `"`
 - `'` JSXSingleStringCharacters<sub>opt</sub> `'`
-- `{` AssignmentExpression `}`
+- `{` JSXGeneratorExpression `}`
 - JSXElement
 - JSXFragment
+
+JSXGeneratorExpression :
+
+- ObjectLiteral
+- FunctionExpression
+- ClassExpression
+- GeneratorExpression
+- AsyncFunctionExpression
+- [lookahead &#8713; { `{` }] StatementList<sub>[+Yield]</sub>
 
 JSXDoubleStringCharacters : 
 
@@ -157,7 +167,7 @@ JSXTextCharacter :
 
 JSXChildExpression :
 
-- AssignmentExpression
+- JSXGeneratorExpression
 - `...` AssignmentExpression
 
 __Whitespace and Comments__
