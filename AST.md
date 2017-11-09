@@ -39,13 +39,21 @@ interface JSXNamespacedName <: Expression {
 JSX Expression Container
 ------------------------
 
-The expression container node contains statements with the same grammar as a generator body. Also it has a flag to indicate if a yield is present in the body. Any expression used as attribute value or inside JSX text should is wrapped into expression container:
+The expression container node contains statements with the same grammar as a generator body. Also it has a flag to indicate whether it is an expression. Any expression used as attribute value or inside JSX text should be wrapped by expression container:
 
 ```js
-interface JSXExpressionContainer <: Expression {
+interface JSXExpressionContainer <: Node {
     type: "JSXExpressionContainer";
-    statements: [ Statement | Declaration ];
-    hasYield: boolean;
+    body: Expression | JSXEmptyExpression | JSXStatementList;
+    expression: boolean;
+}
+```
+
+```js
+interface JSXStatementList <: Node {
+  type: "JSXStatementList";
+  body: [ Statement ];
+  generator: boolean;
 }
 ```
 

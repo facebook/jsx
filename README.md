@@ -96,7 +96,7 @@ JSXAttributes : 
 
 JSXSpreadAttribute :
 
-- `{` `...` JSXGeneratorExpression `}`
+- `{` `...` AssignmentExpression `}`
 
 JSXAttribute : 
 
@@ -121,8 +121,12 @@ JSXAttributeValue : 
 
 JSXGeneratorExpression :
 
-- [lookahead &#8712; { `{` }] ObjectLiteral
-- StatementList<sub>[+Yield]</sub>
+- ObjectLiteral
+- FunctionExpression
+- ClassExpression
+- GeneratorExpression
+- AsyncFunctionExpression
+- [lookahead &#8713; { `{` }] StatementList<sub>[+Yield]</sub>
 
 JSXDoubleStringCharacters : 
 
@@ -164,7 +168,7 @@ JSXTextCharacter :
 JSXChildExpression :
 
 - JSXGeneratorExpression
-- `...` JSXGeneratorExpression
+- `...` AssignmentExpression
 
 __Whitespace and Comments__
 
