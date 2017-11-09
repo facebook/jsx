@@ -44,8 +44,8 @@ The expression container node contains statements with the same grammar as a gen
 ```js
 interface JSXExpressionContainer <: Node {
     type: "JSXExpressionContainer";
-    body: Expression | JSXEmptyExpression | JSXStatementList;
-    expression: boolean;
+    expression: Expression | JSXEmptyExpression | JSXStatementList;
+    isExpression: boolean;
 }
 ```
 
