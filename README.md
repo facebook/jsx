@@ -164,10 +164,11 @@ JSXChild :
 JSXText :
 
 - JSXTextCharacter JSXText<sub>opt</sub>
+- [lookahead &#8713; { `{` }] `*` JSXText<sub>opt</sub>
 
 JSXTextCharacter :
 
-- SourceCharacter __but not one of `{`, `<`, `>` or `}`__
+- SourceCharacter __but not one of `*`, `{`, `<`, `>` or `}`__
 
 JSXChildExpression :
 
