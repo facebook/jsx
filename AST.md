@@ -98,13 +98,6 @@ interface JSXAttribute <: Node {
     value: Literal | JSXExpressionContainer | JSXElement | JSXFragment | null;
 }
 
-// This is already used by ES6 parsers, but not included
-// in Mozilla's spec yet.
-interface SpreadElement <: Node {
-    type: "SpreadElement";
-    argument: Expression;
-}
-
 interface JSXSpreadAttribute <: SpreadElement {
     type: "JSXSpreadAttribute";
 }
