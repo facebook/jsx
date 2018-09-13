@@ -46,7 +46,7 @@ __Elements__
 JSXElement : 
 
 - JSXSelfClosingElement 
-- JSXOpeningElement JSXChildren<sub>opt</sub> JSXClosingElement<br />
+- JSXOpeningElement JSXChildren<sub>opt</sub> JSXClosingElement  
   (names of JSXOpeningElement and JSXClosingElement should match)
 
 JSXSelfClosingElement :
