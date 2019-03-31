@@ -167,7 +167,7 @@ _JSX uses the same punctuators and braces as ECMAScript. WhiteSpace, LineTermina
 Parser Implementations
 ----------------------
 
-- [acorn-jsx](https://github.com/RReverser/acorn-jsx): A fork of acorn.
+- [acorn-jsx](https://github.com/RReverser/acorn-jsx): A plugin for acorn.
 - [esprima-fb](https://github.com/facebook/esprima): A fork of esprima.
 - [jsx-reader](https://github.com/jlongster/jsx-reader): A sweet.js macro.
 
