@@ -40,6 +40,7 @@ PrimaryExpression :
 
 - JSXElement
 - JSXFragment
+- JSXGeneratorExpressionContainer
 
 __Elements__
 
@@ -115,8 +116,20 @@ JSXAttributeValue : 
 - `"` JSXDoubleStringCharacters<sub>opt</sub> `"`
 - `'` JSXSingleStringCharacters<sub>opt</sub> `'`
 - `{` AssignmentExpression `}`
+- JSXGeneratorExpressionContainer
 - JSXElement
 - JSXFragment
+
+JSXGeneratorExpressionContainer :
+- `*` `{` JSXGeneratorExpression<sub>opt</sub> `}`
+
+JSXGeneratorExpression :
+- ObjectLiteral
+- FunctionExpression
+- ClassExpression
+- GeneratorExpression
+- AsyncFunctionExpression
+- FunctionBody<sub>[+Yield, ~Await, ~Return]</sub>
 
 JSXDoubleStringCharacters : 
 
@@ -145,15 +158,17 @@ JSXChild :
 - JSXText
 - JSXElement
 - JSXFragment
+- JSXGeneratorExpressionContainer
 - `{` JSXChildExpression<sub>opt</sub> `}`
 
 JSXText :
 
 - JSXTextCharacter JSXText<sub>opt</sub>
+- [lookahead &#8713; { `{` }] `*` JSXText<sub>opt</sub>
 
 JSXTextCharacter :
 
-- SourceCharacter __but not one of `{`, `<`, `>` or `}`__
+- SourceCharacter __but not one of `*`, `{`, `<`, `>` or `}`__
 
 JSXChildExpression :
 
