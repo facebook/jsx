@@ -46,7 +46,7 @@ __Elements__
 JSXElement : 
 
 - JSXSelfClosingElement 
-- JSXOpeningElement JSXChildren<sub>opt</sub> JSXClosingElement  
+- JSXOpeningElement JSXChildren<sub>opt</sub> JSXClosingElement
   (names of JSXOpeningElement and JSXClosingElement should match)
 
 JSXSelfClosingElement :
@@ -90,12 +90,8 @@ __Attributes__
 
 JSXAttributes : 
 
-- JSXSpreadAttribute JSXAttributes<sub>opt</sub>
+- ObjectExpression JSXAttributes<sub>opt</sub>
 - JSXAttribute JSXAttributes<sub>opt</sub>
-
-JSXSpreadAttribute :
-
-- `{` `...` AssignmentExpression `}`
 
 JSXAttribute : 
 
