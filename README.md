@@ -88,14 +88,19 @@ JSXMemberExpression :
 
 __Attributes__
 
-JSXAttributes : 
+JSXAttributes :
 
-- JSXSpreadAttribute JSXAttributes<sub>opt</sub>
+- `{` JSXAttributesShorthand `}` JSXAttributes<sub>opt</sub>
 - JSXAttribute JSXAttributes<sub>opt</sub>
 
-JSXSpreadAttribute :
+JSXAttributesShorthand :
 
-- `{` `...` AssignmentExpression `}`
+- JSXAttributeShorthand JSXAttributesShorthand<sub>opt</sub>
+
+JSXAttributeShorthand :
+
+- `...` AssignmentExpression `,`<sub>opt</sub>
+- Identifier `,`<sub>opt</sub>
 
 JSXAttribute : 
 
