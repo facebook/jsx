@@ -90,8 +90,12 @@ __Attributes__
 
 JSXAttributes : 
 
-- ObjectExpression JSXAttributes<sub>opt</sub>
+- JSXSpreadAttribute JSXAttributes<sub>opt</sub>
 - JSXAttribute JSXAttributes<sub>opt</sub>
+
+JSXSpreadAttribute :
+
+- `{` `...` AssignmentExpression `}`
 
 JSXAttribute : 
 
