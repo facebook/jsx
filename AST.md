@@ -95,7 +95,7 @@ Opening element ("tag") may contain attributes:
 interface JSXAttribute <: Node {
     type: "JSXAttribute";
     name: JSXIdentifier | JSXNamespacedName;
-    value: Literal | JSXExpressionContainer | JSXElement | JSXFragment | null;
+    value: Literal | JSXExpressionContainer | JSXElement | JSXFragment | JSXIdentifier | null;
 }
 
 interface JSXSpreadAttribute <: SpreadElement {
