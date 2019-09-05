@@ -100,6 +100,7 @@ JSXSpreadAttribute :
 JSXAttribute : 
 
 - JSXAttributeName JSXAttributeInitializer<sub>opt</sub>
+- `+` JSXIdentifier
 
 JSXAttributeName :
 
