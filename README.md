@@ -245,7 +245,7 @@ var box =
 Why not JXON?
 -------------
 
-Another alternative would be to use object initializers (similar to [JXON](https://developer.mozilla.org/en-US/docs/JXON)). Unfortunately, the balanced braces do not give great syntactic hints for where an element starts and ends in large trees. Balanced named tags is a critical syntactic feature of the XML-style notation.
+Another alternative would be to use object initializers (similar to [JXON](https://developer.mozilla.org/en-US/docs/Archive/JXON)). Unfortunately, the balanced braces do not give great syntactic hints for where an element starts and ends in large trees. Balanced named tags is a critical syntactic feature of the XML-style notation.
 
 Prior Art
 ---------
