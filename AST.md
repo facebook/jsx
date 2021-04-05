@@ -165,6 +165,7 @@ Tools that work with JSX AST
   - [typescript](https://www.typescriptlang.org/docs/handbook/jsx.html)
   - [esprima](https://esprima.readthedocs.io/en/latest/syntactic-analysis.html#jsx-syntax-support)
   - [acorn-jsx](https://github.com/RReverser/acorn-jsx): A plugin for acorn.
+  - [meriyah](https://github.com/meriyah/meriyah)
 * Node creation and declarative traversal: [ast-types](https://github.com/benjamn/ast-types)
 
 License
