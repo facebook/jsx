@@ -95,13 +95,18 @@ Opening element ("tag") may contain attributes:
 interface JSXAttribute <: Node {
     type: "JSXAttribute";
     name: JSXIdentifier | JSXNamespacedName;
-    value: Literal | JSXExpressionContainer | JSXElement | JSXFragment | null;
+    value: Literal | TemplateLiteral | JSXExpressionContainer | JSXElement | JSXFragment | null;
 }
 
 interface JSXSpreadAttribute <: SpreadElement {
     type: "JSXSpreadAttribute";
 }
 ```
+
+References:
+
+1. [Literal](https://github.com/estree/estree/blob/master/es5.md#literal)
+2. [TemplateLiteral](https://github.com/estree/estree/blob/master/es2015.md#templateliteral)
 
 JSX Text
 --------
@@ -160,7 +165,7 @@ Tools that work with JSX AST
 ----------------------------
 
 * Parsers:
-  - [babylon](https://github.com/babel/babylon)
+  - [@babel/parser](https://github.com/babel/packages/babel-parser)
   - [flow-parser](https://www.npmjs.com/package/flow-parser)
   - [typescript](https://www.typescriptlang.org/docs/handbook/jsx.html)
   - [esprima](https://esprima.readthedocs.io/en/latest/syntactic-analysis.html#jsx-syntax-support)
