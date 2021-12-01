@@ -165,7 +165,7 @@ Tools that work with JSX AST
 ----------------------------
 
 * Parsers:
-  - [@babel/parser](https://github.com/babel/packages/babel-parser)
+  - [@babel/parser](https://github.com/babel/babel/tree/main/packages/babel-parser)
   - [flow-parser](https://www.npmjs.com/package/flow-parser)
   - [typescript](https://www.typescriptlang.org/docs/handbook/jsx.html)
   - [esprima](https://esprima.readthedocs.io/en/latest/syntactic-analysis.html#jsx-syntax-support)
