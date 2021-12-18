@@ -112,15 +112,15 @@ JSXAttributeInitializer : 
 
 JSXAttributeValue : 
 
-- `"` JSXDoubleStringCharacters<sub>opt</sub> `"`
-- `'` JSXSingleStringCharacters<sub>opt</sub> `'`
+- `"` __NO WHITESPACE OR COMMENT__ JSXDoubleStringCharacters<sub>opt</sub> __NO WHITESPACE OR COMMENT__ `"`
+- `'` __NO WHITESPACE OR COMMENT__ JSXSingleStringCharacters<sub>opt</sub> __NO WHITESPACE OR COMMENT__ `'`
 - `{` AssignmentExpression `}`
 - JSXElement
 - JSXFragment
 
 JSXDoubleStringCharacters : 
 
-- JSXDoubleStringCharacter JSXDoubleStringCharacters<sub>opt</sub>
+- JSXDoubleStringCharacter __NO WHITESPACE OR COMMENT__ JSXDoubleStringCharacters<sub>opt</sub>
 
 JSXDoubleStringCharacter : 
 
@@ -128,7 +128,7 @@ JSXDoubleStringCharacter : 
 
 JSXSingleStringCharacters : 
 
-- JSXSingleStringCharacter JSXSingleStringCharacters<sub>opt</sub>
+- JSXSingleStringCharacter __NO WHITESPACE OR COMMENT__ JSXSingleStringCharacters<sub>opt</sub>
 
 JSXSingleStringCharacter : 
 
