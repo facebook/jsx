@@ -73,8 +73,8 @@ JSXElementName :
 
 JSXIdentifier :
 
-- [IdentifierStart](https://tc39.es/ecma262/#prod-IdentifierStart)
-- JSXIdentifier [IdentifierPart](https://tc39.es/ecma262/#prod-IdentifierPart)
+- IdentifierStart
+- JSXIdentifier IdentifierPart
 - JSXIdentifier __NO WHITESPACE OR COMMENT__ `-`
 
 JSXNamespacedName :
@@ -95,7 +95,7 @@ JSXAttributes : 
 
 JSXSpreadAttribute :
 
-- `{` `...` [AssignmentExpression](https://tc39.es/ecma262/#prod-AssignmentExpression) `}`
+- `{` `...` AssignmentExpression `}`
 
 JSXAttribute : 
 
@@ -114,8 +114,8 @@ JSXAttributeValue : 
 
 - `"` JSXDoubleStringCharacters<sub>opt</sub> `"`
 - `'` JSXSingleStringCharacters<sub>opt</sub> `'`
-- [TemplateLiteral](https://tc39.es/ecma262/#prod-Template)
-- `{` [AssignmentExpression](https://tc39.es/ecma262/#prod-AssignmentExpression) `}`
+- TemplateLiteral
+- `{` AssignmentExpression `}`
 - JSXElement
 - JSXFragment
 
@@ -133,7 +133,7 @@ JSXSingleStringCharacters : 
 
 JSXSingleStringCharacter : 
 
-- [SourceCharacter](https://tc39.es/ecma262/#prod-SourceCharacter) __but not `'`__
+- SourceCharacter __but not `'`__
 
 __Children__
 
@@ -154,16 +154,16 @@ JSXText :
 
 JSXTextCharacter :
 
-- [SourceCharacter](https://tc39.es/ecma262/#prod-SourceCharacter) __but not one of `{`, `<`, `>` or `}`__
+- SourceCharacter __but not one of `{`, `<`, `>` or `}`__
 
 JSXChildExpression :
 
-- [AssignmentExpression](https://tc39.es/ecma262/#prod-AssignmentExpression)
-- `...` [AssignmentExpression](https://tc39.es/ecma262/#prod-AssignmentExpression)
+- AssignmentExpression
+- `...` AssignmentExpression
 
 __Whitespace and Comments__
 
-_JSX uses the same punctuators and braces as ECMAScript. [WhiteSpace](https://tc39.es/ecma262/#sec-white-space), [LineTerminators](https://tc39.es/ecma262/#prod-LineTerminator) and [Comments](https://tc39.es/ecma262/#prod-Comment) are generally allowed between any punctuators._
+_JSX uses the same punctuators and braces as ECMAScript. WhiteSpace, LineTerminators and Comments are generally allowed between any punctuators._
 
 Parser Implementations
 ----------------------

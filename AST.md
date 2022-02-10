@@ -103,11 +103,6 @@ interface JSXSpreadAttribute <: SpreadElement {
 }
 ```
 
-References:
-
-1. [Literal](https://github.com/estree/estree/blob/master/es5.md#literal)
-2. [TemplateLiteral](https://github.com/estree/estree/blob/master/es2015.md#templateliteral)
-
 JSX Text
 --------
 
@@ -165,7 +160,7 @@ Tools that work with JSX AST
 ----------------------------
 
 * Parsers:
-  - [@babel/parser](https://github.com/babel/babel/tree/main/packages/babel-parser)
+  - [babylon](https://github.com/babel/babylon)
   - [flow-parser](https://www.npmjs.com/package/flow-parser)
   - [typescript](https://www.typescriptlang.org/docs/handbook/jsx.html)
   - [esprima](https://esprima.readthedocs.io/en/latest/syntactic-analysis.html#jsx-syntax-support)
