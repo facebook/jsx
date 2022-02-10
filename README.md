@@ -127,13 +127,9 @@ JSXDoubleStringCharacter : 
 
 - SourceCharacter __but not `"`__
 
-> NOTE: The string value that is produced from these characters does *not* follow the [SV](https://tc39.es/ecma262/#sec-static-semantics-sv) procedure, but instead the rules defined in the [attribute value section](https://html.spec.whatwg.org/#attribute-value-(double-quoted)-state) of the HTML specification. Including the decoding of [character references](https://html.spec.whatwg.org/#character-references).
-
 JSXSingleStringCharacters : 
 
 - JSXSingleStringCharacter JSXSingleStringCharacters<sub>opt</sub>
-
-> NOTE: The string value that is produced from these characters does *not* follow the [SV](https://tc39.es/ecma262/#sec-static-semantics-sv) procedure, but instead the rules defined in the [attribute value section](https://html.spec.whatwg.org/#attribute-value-(single-quoted)-state) of the HTML specification. Including the decoding of [character references](https://html.spec.whatwg.org/#character-references).
 
 JSXSingleStringCharacter : 
 
