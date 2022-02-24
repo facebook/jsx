@@ -159,6 +159,7 @@ JSXChildren :
 JSXChild :
   JSXText
   JSXElement
+  JSXFragment
   `{` JSXChildExpression? `}`
 
 JSXText :
