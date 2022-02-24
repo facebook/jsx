@@ -1,6 +1,7 @@
 DRAFT: JSX Specification
 ========================
 
+[**See spec text with grammar here**](https://facebook.github.io/jsx).
 
 JSX is an XML-like syntax extension to ECMAScript without any defined semantics. It's NOT intended to be implemented by engines or browsers. __It's NOT a proposal to incorporate JSX into the ECMAScript spec itself.__ It's intended to be used by various preprocessors (transpilers) to transform these tokens into standard ECMAScript. 
 
@@ -19,11 +20,6 @@ var dropdown =
 render(dropdown);
 ```
 
-[See grammar and spec text](https://facebook.github.io/jsx).
-
-
-
-
 Rationale
 ---------
 
@@ -37,24 +33,6 @@ It is our intention to claim minimal syntactic real estate while keeping the syn
 
 This specification does not attempt to comply with any XML or HTML specification. JSX is designed as an ECMAScript feature and the similarity to XML is only for familiarity.
 
-Parser Implementations
-----------------------
-
-- [acorn-jsx](https://github.com/RReverser/acorn-jsx): A fork of acorn.
-- [esprima-fb](https://github.com/facebook/esprima): A fork of esprima.
-- [jsx-reader](https://github.com/jlongster/jsx-reader): A sweet.js macro.
-
-Transpilers
------------
-
-These are a set of transpilers that all conform to the JSX syntax but use different semantics on the output:
-
-- [React JSX](http://facebook.github.io/react/docs/jsx-in-depth.html): Create ReactElements using JSX.
-- [jsx-transform](https://github.com/alexmingoia/jsx-transform): Configurable implementation of JSX decoupled from React.
-- [Babel](http://babeljs.io): An ES2015 and beyond to ES of now transpiler with JSX support.
-- [Bublé](http://buble.surge.sh): Another ES2015 and beyond to ES of now transpiler with JSX support.
-
-NOTE: A conforming transpiler may choose to use a subset of the JSX syntax.
 
 Why not Template Literals?
 --------------------------
@@ -118,7 +96,7 @@ var box =
 Why not JXON?
 -------------
 
-Another alternative would be to use object initializers (similar to [JXON](https://developer.mozilla.org/en-US/docs/JXON)). Unfortunately, the balanced braces do not give great syntactic hints for where an element starts and ends in large trees. Balanced named tags is a critical syntactic feature of the XML-style notation.
+Another alternative would be to use object initializers (similar to [JXON](https://htmlpreview.github.io/?https://github.com/mdn/archived-content/blob/main/files/en-us/archive/jxon/raw.html)). Unfortunately, the balanced braces do not give great syntactic hints for where an element starts and ends in large trees. Balanced named tags is a critical syntactic feature of the XML-style notation.
 
 Prior Art
 ---------
