@@ -1,0 +1,259 @@
+<!doctype html>
+<meta charset="utf8">
+<link rel="stylesheet" href="./spec.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/styles/github.min.css">
+<script src="./spec.js"></script>
+<pre class="metadata">
+title: JSX
+version: Draft
+contributors: Meta Platform Inc.
+copyright: false
+</pre>
+
+<emu-intro id="sec-intro">
+  <h1>Introduction</h1>
+  <p>JSX is an XML-like syntax extension to ECMAScript without any defined semantics. It's NOT intended to be implemented by engines or browsers. <b>It's NOT a proposal to incorporate JSX into the ECMAScript spec itself.</b> It's intended to be used by various preprocessors (transpilers) to transform these tokens into standard ECMAScript.
+  </p>
+
+  <!-- recommend using a HTML escape/unescape tool -->
+  <pre><code class="language-jsx">
+// Using JSX to express UI components
+var dropdown =
+  &lt;Dropdown&gt;
+    A dropdown list
+    &lt;Menu&gt;
+      &lt;MenuItem&gt;Do Something&lt;/MenuItem&gt;
+      &lt;MenuItem&gt;Do Something Fun!&lt;/MenuItem&gt;
+      &lt;MenuItem&gt;Do Something Else&lt;/MenuItem&gt;
+    &lt;/Menu&gt;
+  &lt;/Dropdown&gt;;
+
+render(dropdown);
+  </code></pre>
+
+  <emu-intro id="sec-rationale">
+  <h1>Rationale</h1>
+  <p>The purpose of this specification is to define a concise and familiar syntax for defining tree structures with attributes. A generic but well defined syntax enables a community of independent parsers and syntax highlighters to conform to a single specification.</p>
+  <p>Embedding a new syntax in an existing language is a risky venture. Other syntax implementors or the existing language may introduce another incompatible syntax extension. </p>
+  <p> Through a stand-alone specification, we make it easier for implementors of other syntax extensions to consider JSX when designing their own syntax. This will hopefully allow various new syntax extensions to co-exist.  </p>
+  <p> It is our intention to claim minimal syntactic real estate while keeping the syntax concise and familiar. That way we leave the door open for other extensions.</p>
+  <p> This specification does not attempt to comply with any XML or HTML specification. JSX is designed as an ECMAScript feature and the similarity to XML is only for familiarity.</p>
+
+  </emu-intro> 
+</emu-intro>
+
+
+<emu-clause id="sec-jsx-grammar">
+  <h1>JSX Definition</h1>
+
+  <emu-clause id="sec-jsx-PrimaryExpression">
+    <h1>Modified Productions</h1>
+    <p>JSX extends the |PrimaryExpression| in the <a href="https://tc39.es/ecma262/">ECMAScript (ECMA-262)</a> grammar:</p>
+
+    <h2>Syntax</h2>
+    <emu-grammar>
+  PrimaryExpression : 
+    <ins>JSXElement</ins>
+    <ins>JSXFragment</ins>
+    </emu-grammar>
+  </emu-clause>
+
+  <emu-clause id="sec-jsx-elements">
+    <h1>JSX Elements</h1>
+    <h2>Syntax</h2>
+
+    <emu-grammar>
+JSXElement :
+  JSXSelfClosingElement
+  JSXOpeningElement JSXChildren? JSXClosingElement
+  </emu-grammar>
+
+  <emu-note>
+  names of |JSXOpeningElement| and |JSXClosingElement| should match.
+  </emu-note>
+
+  <emu-grammar>
+JSXSelfClosingElement :
+    `<` JSXElementName JSXAttributes? `/` `>`
+
+JSXOpeningElement :
+    `<` JSXElementName JSXAttributes? `>`
+
+JSXClosingElement :
+    `<` `/` JSXElementName `>`
+
+JSXFragment :
+  `<` `>` JSXChildren? `<` `/` `>`
+
+JSXElementName :
+  JSXIdentifier
+  JSXNamespacedName
+  JSXMemberExpression
+
+JSXIdentifier :
+  IdentifierStart
+  JSXIdentifier IdentifierPart
+  JSXIdentifier [no one of WhiteSpace or Comment here] `-`
+
+JSXNamespacedName :
+  JSXIdentifier `:` JSXIdentifier
+
+JSXMemberExpression :
+  JSXIdentifier `.` JSXIdentifier
+  JSXMemberExpression `.` JSXIdentifier
+
+    </emu-grammar>
+  </emu-clause>
+
+  <emu-clause id="sec-jsx-attributes">
+    <h1>JSX Attributes</h1>
+    <h2>Syntax</h2>
+
+    <emu-grammar>
+JSXAttributes :
+  JSXSpreadAttribute JSXAttributes?
+  JSXAttribute JSXAttributes?
+
+JSXSpreadAttribute :
+  `{` `...` AssignmentExpression `}`
+
+JSXAttribute :
+  JSXAttributeName JSXAttributeInitializer?
+
+JSXAttributeName :
+  JSXIdentifier
+  JSXNamespacedName
+
+JSXAttributeInitializer :
+  `=` JSXAttributeValue
+
+JSXAttributeValue :
+  `"` JSXDoubleStringCharacters? `"`
+  `'` JSXSingleStringCharacters? `'`
+  `{` AssignmentExpression `}`
+  JSXElement
+  JSXFragment
+
+JSXDoubleStringCharacters :
+  JSXDoubleStringCharacter JSXDoubleStringCharacters?
+
+JSXDoubleStringCharacter :
+  SourceCharacter but not `"`
+
+JSXSingleStringCharacters :
+  JSXSingleStringCharacter JSXSingleStringCharacters?
+
+JSXSingleStringCharacter :
+  SourceCharacter but not `'`
+    </emu-grammar>
+  </emu-clause>
+
+  <emu-clause id="sec-jsx-children">
+    <h1>JSX Children</h1>
+    <h2>Syntax</h2>
+
+    <emu-grammar>
+JSXChildren :
+  JSXChild JSXChildren?
+
+JSXChild :
+  JSXText
+  JSXElement
+  JSXFragment
+  `{` JSXChildExpression? `}`
+
+JSXText :
+  JSXTextCharacter JSXText?
+
+JSXTextCharacter :
+  SourceCharacter but not one of `{` or `<` or `>` or `}`
+
+JSXChildExpression :
+  AssignmentExpression
+  `...` AssignmentExpression
+
+    </emu-grammar>
+  </emu-clause>
+</emu-clause>
+
+<emu-annex id="sec-why-not-template-literals">
+<h1>Why not Template Literals?</h1>
+<p><a href="https://www.ecma-international.org/ecma-262/8.0/index.html">ECMAScript 6th Edition (ECMA-262)</a> introduces template literals which are intended to be used for embedding DSL in ECMAScript. Why not just use that instead of inventing a syntax that's not part of ECMAScript?</p>
+<p>Template literals work well for long embedded DSLs. Unfortunately the syntax noise is substantial when you exit in and out of embedded arbitrary ECMAScript expressions with identifiers in scope.</p>
+
+<pre><code class="language-jsx">
+// Template Literals
+var box = jsx`
+  &lt;${Box}&gt;
+    ${
+      shouldShowAnswer(user) ?
+      jsx`&lt;${Answer} value=${false}&gt;no&lt;/${Answer}&gt;` :
+      jsx`
+        &lt;${Box.Comment}&gt;
+         Text Content
+        &lt;/${Box.Comment}&gt;
+      `
+    }
+  &lt;/${Box}&gt;
+`;
+</code></pre>
+
+<p>It would be possible to use template literals as a syntactic entry point and change the semantics inside the template literal to allow embedded scripts that can be evaluated in scope:</p>
+
+<pre><code class="language-jsx">
+// Template Literals with embedded JSX
+var box = jsx`
+  &lt;Box&gt;
+    {
+      shouldShowAnswer(user) ?
+      &lt;Answer value={false}&gt;no&lt;/Answer&gt; :
+      &lt;Box.Comment&gt;
+         Text Content
+      &lt;/Box.Comment&gt;
+    }
+  &lt;/Box&gt;
+`;
+</code></pre>
+
+<p>However, this would lead to further divergence. Tooling that is built around the assumptions imposed by template literals wouldn't work. It would undermine the meaning of template literals. It would be necessary to define how JSX behaves within the rest of the ECMAScript grammar within the template literal anyway.</p>
+
+<p>Therefore it's better to introduce JSX as an entirely new type of PrimaryExpression:</p>
+
+<pre><code class="language-jsx">
+// JSX
+var box =
+  &lt;Box&gt;
+    {
+      shouldShowAnswer(user) ?
+      &lt;Answer value={false}&gt;no&lt;/Answer&gt; :
+      &lt;Box.Comment&gt;
+         Text Content
+      &lt;/Box.Comment&gt;
+    }
+  &lt;/Box&gt;;
+</code></pre>
+
+<emu-note>
+  Don't you love the syntax highlighting here? ;) 
+</emu-note>
+
+</emu-annex>
+
+
+<emu-annex id="sec-why-not-JXON">
+<h1>Why not JXON?</h1>
+<p>Another alternative would be to use object initializers (similar to <a href="https://github.com/tyrasd/jxon">JXON</a>). Unfortunately, the balanced braces do not give great syntactic hints for where an element starts and ends in large trees. Balanced named tags is a critical syntactic feature of the XML-style notation.</p>
+</emu-annex>
+
+<emu-annex id="sec-prior-art">
+<h1>Prior Art</h1>
+<p>The JSX syntax is similar to the <a href="http://www.ecma-international.org/publications/files/ECMA-ST-WITHDRAWN/Ecma-357.pdf">E4X Specification (ECMA-357)</a>. E4X is a deprecated specification with deep reaching semantic meaning. JSX partially overlaps with a tiny subset of the E4X syntax. However, JSX has no relation to the E4X specification.</p>
+</emu-annex>
+
+<emu-annex id="sec-license">
+<h1>License</h1>
+<p>Copyright (c) 2014 - present, <a href="https://about.facebook.com/meta/">Meta Platforms, Inc.</a> All rights reserved.</p>
+<p>
+This work is licensed under a <a href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
+</p>
+</emu-annex>
