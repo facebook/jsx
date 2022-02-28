@@ -91,7 +91,7 @@ render(dropdown);
     </emu-grammar>
 
     <emu-note>
-      JSXIdentifier is different from Identifier, which means in the context of |Identifier[+await]|, you can still use <code>&lt;await /&gt;</code> as a JSX tag.
+      The grammar of |JSXIdentifier| is not parameterized the same way |Identifier| is. This means that <code>&lt;await /&gt;</code> is still a valid production when "[await]" appears during the derivation.
     </emu-note>
 
     <emu-grammar type="definition">
@@ -103,6 +103,17 @@ render(dropdown);
         JSXMemberExpression `.` JSXIdentifier
 
     </emu-grammar>
+
+    <emu-clause type="sdo" id="sec-jsx-elements-early-errors">
+      <h1>Static Semantics: Early Errors</h1>
+      <emu-grammar>
+        JSXElement : JSXOpeningElement JSXChildren? JSXClosingElement
+      </emu-grammar>
+      <ul>
+        <li>It is a Syntax Error if the source text matched by the |JSXElementName| of |JSXOpeningElement| does not equal to the source text matched by the |JSXElementName| of |JSXClosingElement|.</li>
+      </ul>
+    </emu-clause>
+
   </emu-clause>
 
   <emu-clause id="sec-jsx-attributes">
@@ -174,16 +185,6 @@ render(dropdown);
 
     </emu-grammar>
   </emu-clause>
-</emu-clause>
-
-<emu-clause type="sdo" id="sec-early-errors">
-  <h1>Static Semantics: Early Errors</h1>
-  <emu-grammar>
-    JSXElement : JSXOpeningElement JSXChildren? JSXClosingElement
-  </emu-grammar>
-  <ul>
-    <li>It is a Syntax Error if the source text matched by the |JSXElementName| of |JSXOpeningElement| does not equal to the source text matched by the |JSXElementName| of |JSXClosingElement|.</li>
-  </ul>
 </emu-clause>
 
 <emu-annex id="sec-why-not-template-literals">
