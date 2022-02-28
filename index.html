@@ -2668,8 +2668,8 @@ li.menu-search-result-term:before {
         <emu-t>}</emu-t>
     </emu-rhs>
 </emu-production>
-<emu-production name="JSXText" id="prod-JSXText">
-    <emu-nt><a href="#prod-JSXText">JSXText</a></emu-nt> <emu-geq>:</emu-geq> <emu-rhs a="z5eumfmp">
+<emu-production name="JSXText" type="lexical" id="prod-JSXText">
+    <emu-nt><a href="#prod-JSXText">JSXText</a></emu-nt> <emu-geq>::</emu-geq> <emu-rhs a="z5eumfmp">
         <emu-nt id="_ref_55"><a href="#prod-JSXTextCharacter">JSXTextCharacter</a></emu-nt>
         <emu-nt optional="" id="_ref_56"><a href="#prod-JSXText">JSXText</a><emu-mods><emu-opt>opt</emu-opt></emu-mods></emu-nt>
     </emu-rhs>
@@ -2694,7 +2694,7 @@ li.menu-search-result-term:before {
     <emu-clause id="sec-jsx-string-characters">
       <h1><span class="secnum">1.5.1</span> JSX String Characters</h1>
 
-      <p>Historically, string characters within <emu-nt id="_ref_57"><a href="#prod-JSXAttributeValue">JSXAttributeValue</a></emu-nt> and <emu-nt id="_ref_58"><a href="#prod-JSXText">JSXText</a></emu-nt> are extended to allow the presence of <emu-xref href="#sec-HTMLCharacterReference" id="_ref_0"><a href="#sec-HTMLCharacterReference">HTML character references</a></emu-xref> to make copy-pasting between HTML and JSX easier. We may revisit this decision in the future.</p>
+      <p>Historically, string characters within <emu-nt id="_ref_57"><a href="#prod-JSXAttributeValue">JSXAttributeValue</a></emu-nt> and <emu-nt id="_ref_58"><a href="#prod-JSXText">JSXText</a></emu-nt> are extended to allow the presence of <emu-xref href="#sec-HTMLCharacterReference" id="_ref_0"><a href="#sec-HTMLCharacterReference">HTML character references</a></emu-xref> to make copy-pasting between HTML and JSX easier, at the cost of not supporting <code>\</code> <emu-nt><a href="https://tc39.es/ecma262/#prod-annexB-EscapeSequence">EscapeSequence</a></emu-nt> of ECMAScript's <emu-nt><a href="https://tc39.es/ecma262/#prod-StringLiteral">StringLiteral</a></emu-nt>. We may revisit this decision in the future.</p>
       
       <h2>Syntax</h2>
 
@@ -2707,15 +2707,15 @@ li.menu-search-result-term:before {
     <emu-clause id="sec-HTMLCharacterReference">
       <h1><span class="secnum">1.5.2</span> HTML Character References</h1>
       <emu-note><span class="note">Note 1</span><div class="note-contents">
-      <p>HTML character references are defined in the <a href="https://html.spec.whatwg.org/multipage/syntax.html#character-references">HTML standard</a>.</p>
+      <p>The grammars here followed <a href="https://html.spec.whatwg.org/multipage/syntax.html#character-references">the living HTML standard</a>.</p>
       </div></emu-note>
 
       <h2>Syntax</h2>
 
       <emu-grammar><emu-production name="HTMLCharacterReference" type="lexical">
-    <emu-nt>HTMLCharacterReference</emu-nt> <emu-geq>::</emu-geq> <emu-rhs a="ldmyv8x1"><emu-nt>XHTMLDecimalCharacterReference</emu-nt></emu-rhs>
-    <emu-rhs a="92udv0vg"><emu-nt>XHTMLHexCharacterReference</emu-nt></emu-rhs>
-    <emu-rhs a="-rh6rgss"><emu-nt>XHTMLNamedCharacterReference</emu-nt></emu-rhs>
+    <emu-nt>HTMLCharacterReference</emu-nt> <emu-geq>::</emu-geq> <emu-rhs a="agxgawzs"><emu-nt>HTMLDecimalCharacterReference</emu-nt></emu-rhs>
+    <emu-rhs a="y8kdlbqm"><emu-nt>HTMLHexCharacterReference</emu-nt></emu-rhs>
+    <emu-rhs a="87f0wv7v"><emu-nt>HTMLNamedCharacterReference</emu-nt></emu-rhs>
 </emu-production>
 <emu-production name="HTMLDecimalCharacterReference" type="lexical">
     <emu-nt>HTMLDecimalCharacterReference</emu-nt> <emu-geq>::</emu-geq> <emu-rhs a="fo85v5rn">
@@ -2744,22 +2744,16 @@ li.menu-search-result-term:before {
     </emu-rhs>
 </emu-production>
 <emu-production name="HTMLNamedCharacterReferenceName" type="lexical">
-    <emu-nt>HTMLNamedCharacterReferenceName</emu-nt> <emu-geq>::</emu-geq> <emu-rhs a="kmiuecgl"><emu-gprose>An implementations-defined list of names</emu-gprose></emu-rhs>
+    <emu-nt>HTMLNamedCharacterReferenceName</emu-nt> <emu-geq>::</emu-geq> <emu-rhs a="dhbeeq7h"><emu-gprose>List of 252 character entity references defined in HTML4 standard</emu-gprose></emu-rhs>
 </emu-production>
 </emu-grammar>
 
       <emu-note><span class="note">Note 2</span><div class="note-contents"> 
-        <p>We recommend an implementation to choose the list from either the HTML4 standard or the living HTML standard:</p>
-        <ul>
-        <li>
-        The HTML4 standard defined <a href="https://www.w3.org/TR/1999/REC-html401-19991224/sgml/entities.html">a list of 252 character entity references</a> . 
-        </li>
-        <li>
-        The living HTML standard defined <a href="https://html.spec.whatwg.org/multipage/named-characters.html#named-character-references">a list of 2231 named character references</a> since the HTML5 standard. It also claimed that <a href="https://github.com/whatwg/html/blob/main/FAQ.md#html-should-add-more-named-character-references">this list is static and will not be expanded or changed in the future</a> to reduce support burden for languages such as JSX.
-        </li>
-        </ul>
         <p>
-          As the time of writing, both Babel and TypeScript supports only the 252 names defined in the HTML4 standard.
+          This means that the later expansion of this list to <a href="https://html.spec.whatwg.org/multipage/named-characters.html#named-character-references">2231 named character references</a> since HTML5 are intentionally <i>excluded</i> from the support.
+        </p>
+        <p>
+          The list of 252 character entity references defined in HTML4 standard can be found <a href="https://www.w3.org/TR/1999/REC-html401-19991224/sgml/entities.html">at here</a>.
         </p>
       </div></emu-note>
     </emu-clause>
@@ -2778,18 +2772,16 @@ li.menu-search-result-term:before {
       <emu-clause type="sdo" id="sec-jsx-JSXString-SV">
         <h1><span class="secnum">1.5.3.1</span> Static Semantics: SV</h1>
         <p>An implementation may convert <emu-nt>JSXString</emu-nt> into a ECMAScript String value. In order to do this, JSX extends the <emu-xref href="#sec-algorithm-conventions-syntax-directed-operations"><a href="https://tc39.es/ecma262/#sec-algorithm-conventions-syntax-directed-operations">syntax-directed operation</a></emu-xref> <a href="https://tc39.es/ecma262/#sec-static-semantics-sv">SV</a> to <emu-nt>JSXStringCharacter</emu-nt>:</p> 
-        <ul>
-          <li>
-            <ins class="block">
-              The SV of <emu-grammar><emu-production name="JSXStringCharacter" type="lexical" collapsed="" class=" inline">
+        <ins class="block">
+          <ul>
+            <li>
+                The SV of <emu-grammar><emu-production name="JSXStringCharacter" type="lexical" collapsed="" class=" inline">
     <emu-nt>JSXStringCharacter</emu-nt> <emu-geq>::</emu-geq> <emu-rhs a="v3ewaosn"><emu-nt><a href="https://tc39.es/ecma262/#prod-grammar-notation-SourceCharacter">SourceCharacter</a></emu-nt></emu-rhs>
 </emu-production>
 </emu-grammar> is the result of performing <a href="https://tc39.es/ecma262/#sec-utf16encodecodepoint">UTF16EncodeCodePoint</a> on the code point matched by <emu-nt><a href="https://tc39.es/ecma262/#prod-grammar-notation-SourceCharacter">SourceCharacter</a></emu-nt>.
-            </ins>
-          </li>
-          <li>
-            <ins class="block">
-              The SV of <emu-grammar><emu-production name="HTMLDecimalCharacterReference" type="lexical" collapsed="" class=" inline">
+            </li>
+            <li>
+                The SV of <emu-grammar><emu-production name="HTMLDecimalCharacterReference" type="lexical" collapsed="" class=" inline">
     <emu-nt>HTMLDecimalCharacterReference</emu-nt> <emu-geq>::</emu-geq> <emu-rhs a="gdsompvk">
         <emu-t>&amp;</emu-t>
         <emu-t>#</emu-t>
@@ -2798,11 +2790,9 @@ li.menu-search-result-term:before {
     </emu-rhs>
 </emu-production>
 </emu-grammar> is the same as the result of performing <a href="https://tc39.es/ecma262/#sec-utf16encodecodepoint">UTF16EncodeCodePoint</a> on the MV of <emu-nt><a href="https://tc39.es/ecma262/#prod-grammar-notation-DecimalDigits">DecimalDigits</a></emu-nt>
-            </ins>
-          </li>
-          <li>
-            <ins class="block">
-              The SV of <emu-grammar><emu-production name="HTMLHexCharacterReference" type="lexical" collapsed="" class=" inline">
+            </li>
+            <li>
+                The SV of <emu-grammar><emu-production name="HTMLHexCharacterReference" type="lexical" collapsed="" class=" inline">
     <emu-nt>HTMLHexCharacterReference</emu-nt> <emu-geq>::</emu-geq> <emu-rhs a="e4w_lnw7">
         <emu-t>&amp;</emu-t>
         <emu-t>#</emu-t>
@@ -2812,11 +2802,9 @@ li.menu-search-result-term:before {
     </emu-rhs>
 </emu-production>
 </emu-grammar> is the same as the result of performing <a href="https://tc39.es/ecma262/#sec-utf16encodecodepoint">UTF16EncodeCodePoint</a> on the MV of <emu-nt><a href="https://tc39.es/ecma262/#prod-HexDigits">HexDigits</a></emu-nt>
-            </ins>
-          </li>
-          <li>
-            <ins class="block">
-              The SV of <emu-grammar><emu-production name="HTMLNamedCharacterReference" type="lexical" collapsed="" class=" inline">
+            </li>
+            <li>
+                The SV of <emu-grammar><emu-production name="HTMLNamedCharacterReference" type="lexical" collapsed="" class=" inline">
     <emu-nt>HTMLNamedCharacterReference</emu-nt> <emu-geq>::</emu-geq> <emu-rhs a="er91pyag">
         <emu-t>&amp;</emu-t>
         <emu-nt>HTMLNamedCharacterReferenceName</emu-nt>
@@ -2824,9 +2812,9 @@ li.menu-search-result-term:before {
     </emu-rhs>
 </emu-production>
 </emu-grammar> is the same as the result of performing <a href="https://tc39.es/ecma262/#sec-utf16encodecodepoint">UTF16EncodeCodePoint</a> on the code points matched by <emu-nt>HTMLNamedCharacterReferenceName</emu-nt> according the implementation-defined list of names.
-            </ins>
-          </li>
-        </ul>
+            </li>
+          </ul>
+        </ins>
 
         <p>The exact approach to fulfill the extended sematics is <a href="https://tc39.es/ecma262/#implementation-defined">implementation-defined</a>.</p>
         <emu-note><span class="note">Note</span><div class="note-contents">

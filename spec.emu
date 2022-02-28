@@ -174,7 +174,7 @@ render(dropdown);
         JSXFragment
         `{` JSXChildExpression? `}`
 
-      JSXText :
+      JSXText ::
         JSXTextCharacter JSXText?
 
       JSXTextCharacter ::
@@ -194,7 +194,7 @@ render(dropdown);
     <emu-clause id="sec-jsx-string-characters">
       <h1>JSX String Characters</h1>
 
-      <p>Historically, string characters within |JSXAttributeValue| and |JSXText| are extended to allow the presence of <emu-xref href="#sec-HTMLCharacterReference">HTML character references</emu-xref> to make copy-pasting between HTML and JSX easier. We may revisit this decision in the future.</p>
+      <p>Historically, string characters within |JSXAttributeValue| and |JSXText| are extended to allow the presence of <emu-xref href="#sec-HTMLCharacterReference">HTML character references</emu-xref> to make copy-pasting between HTML and JSX easier, at the cost of not supporting `\\` |EscapeSequence| of ECMAScript's |StringLiteral|. We may revisit this decision in the future.</p>
       
       <h2>Syntax</h2>
 
@@ -207,16 +207,16 @@ render(dropdown);
     <emu-clause id="sec-HTMLCharacterReference">
       <h1>HTML Character References</h1>
       <emu-note>
-      <p>HTML character references are defined in the <a href="https://html.spec.whatwg.org/multipage/syntax.html#character-references">HTML standard</a>.</p>
+      <p>The grammars here followed <a href="https://html.spec.whatwg.org/multipage/syntax.html#character-references">the living HTML standard</a>.</p>
       </emu-note>
 
       <h2>Syntax</h2>
 
       <emu-grammar>
         HTMLCharacterReference::
-          XHTMLDecimalCharacterReference
-          XHTMLHexCharacterReference
-          XHTMLNamedCharacterReference
+          HTMLDecimalCharacterReference
+          HTMLHexCharacterReference
+          HTMLNamedCharacterReference
 
         HTMLDecimalCharacterReference::
           `&` `#` DecimalDigits [> but only if MV of |DecimalDigits| ≦ 0x10FFFF] `;`
@@ -228,21 +228,15 @@ render(dropdown);
           `&` HTMLNamedCharacterReferenceName `;`
 
         HTMLNamedCharacterReferenceName::
-          > An implementations-defined list of names
+          > List of 252 character entity references defined in HTML4 standard
       </emu-grammar>
 
       <emu-note> 
-        <p>We recommend an implementation to choose the list from either the HTML4 standard or the living HTML standard:</p>
-        <ul>
-        <li>
-        The HTML4 standard defined <a href="https://www.w3.org/TR/1999/REC-html401-19991224/sgml/entities.html">a list of 252 character entity references</a> . 
-        </li>
-        <li>
-        The living HTML standard defined <a href="https://html.spec.whatwg.org/multipage/named-characters.html#named-character-references">a list of 2231 named character references</a> since the HTML5 standard. It also claimed that <a href="https://github.com/whatwg/html/blob/main/FAQ.md#html-should-add-more-named-character-references">this list is static and will not be expanded or changed in the future</a> to reduce support burden for languages such as JSX.
-        </li>
-        </ul>
         <p>
-          As the time of writing, both Babel and TypeScript supports only the 252 names defined in the HTML4 standard.
+          This means that the later expansion of this list to <a href="https://html.spec.whatwg.org/multipage/named-characters.html#named-character-references">2231 named character references</a> since HTML5 are intentionally <i>excluded</i> from the support.
+        </p>
+        <p>
+          The list of 252 character entity references defined in HTML4 standard can be found <a href="https://www.w3.org/TR/1999/REC-html401-19991224/sgml/entities.html">at here</a>.
         </p>
       </emu-note>
     </emu-clause>
@@ -261,28 +255,22 @@ render(dropdown);
       <emu-clause type="sdo" id="sec-jsx-JSXString-SV">
         <h1>Static Semantics: SV</h1>
         <p>An implementation may convert |JSXString| into a ECMAScript String value. In order to do this, JSX extends the syntax-directed operation <a href="https://tc39.es/ecma262/#sec-static-semantics-sv">SV</a> to |JSXStringCharacter|:</p> 
-        <ul>
-          <li>
-            <ins class="block">
-              The SV of <emu-grammar> JSXStringCharacter :: SourceCharacter </emu-grammar> is the result of performing <a href="https://tc39.es/ecma262/#sec-utf16encodecodepoint">UTF16EncodeCodePoint</a> on the code point matched by |SourceCharacter|.
-            </ins>
-          </li>
-          <li>
-            <ins class="block">
-              The SV of <emu-grammar> HTMLDecimalCharacterReference:: `&` `#` DecimalDigits `;` </emu-grammar> is the same as the result of performing <a href="https://tc39.es/ecma262/#sec-utf16encodecodepoint">UTF16EncodeCodePoint</a> on the MV of |DecimalDigits|
-            </ins>
-          </li>
-          <li>
-            <ins class="block">
-              The SV of <emu-grammar>HTMLHexCharacterReference:: `&` `#` `x` HexDigits `;` </emu-grammar> is the same as the result of performing <a href="https://tc39.es/ecma262/#sec-utf16encodecodepoint">UTF16EncodeCodePoint</a> on the MV of |HexDigits|
-            </ins>
-          </li>
-          <li>
-            <ins class="block">
-              The SV of <emu-grammar>HTMLNamedCharacterReference:: `&` HTMLNamedCharacterReferenceName `;` </emu-grammar> is the same as the result of performing <a href="https://tc39.es/ecma262/#sec-utf16encodecodepoint">UTF16EncodeCodePoint</a> on the code points matched by |HTMLNamedCharacterReferenceName| according the implementation-defined list of names.
-            </ins>
-          </li>
-        </ul>
+        <ins class="block">
+          <ul>
+            <li>
+                The SV of <emu-grammar> JSXStringCharacter :: SourceCharacter </emu-grammar> is the result of performing <a href="https://tc39.es/ecma262/#sec-utf16encodecodepoint">UTF16EncodeCodePoint</a> on the code point matched by |SourceCharacter|.
+            </li>
+            <li>
+                The SV of <emu-grammar> HTMLDecimalCharacterReference:: `&` `#` DecimalDigits `;` </emu-grammar> is the same as the result of performing <a href="https://tc39.es/ecma262/#sec-utf16encodecodepoint">UTF16EncodeCodePoint</a> on the MV of |DecimalDigits|
+            </li>
+            <li>
+                The SV of <emu-grammar>HTMLHexCharacterReference:: `&` `#` `x` HexDigits `;` </emu-grammar> is the same as the result of performing <a href="https://tc39.es/ecma262/#sec-utf16encodecodepoint">UTF16EncodeCodePoint</a> on the MV of |HexDigits|
+            </li>
+            <li>
+                The SV of <emu-grammar>HTMLNamedCharacterReference:: `&` HTMLNamedCharacterReferenceName `;` </emu-grammar> is the same as the result of performing <a href="https://tc39.es/ecma262/#sec-utf16encodecodepoint">UTF16EncodeCodePoint</a> on the code points matched by |HTMLNamedCharacterReferenceName| according the implementation-defined list of names.
+            </li>
+          </ul>
+        </ins>
 
         <p>The exact approach to fulfill the extended sematics is <a href="https://tc39.es/ecma262/#implementation-defined">implementation-defined</a>.</p>
         <emu-note>
