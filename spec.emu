@@ -43,7 +43,7 @@ render(dropdown);
 </emu-intro>
 
 
-<emu-clause id="sec-jsx-grammar">
+<emu-clause id="sec-jsx">
   <h1>JSX Definition</h1>
 
   <emu-clause id="sec-jsx-PrimaryExpression">
@@ -145,17 +145,18 @@ render(dropdown);
         JSXElement
         JSXFragment
 
-      JSXDoubleStringCharacters :
+      JSXDoubleStringCharacters ::
         JSXDoubleStringCharacter JSXDoubleStringCharacters?
 
-      JSXDoubleStringCharacter :
-        SourceCharacter but not `"`
+      JSXDoubleStringCharacter ::
+        JSXStringCharacter but not `"`
 
-      JSXSingleStringCharacters :
+      JSXSingleStringCharacters ::
         JSXSingleStringCharacter JSXSingleStringCharacters?
 
-      JSXSingleStringCharacter :
-        SourceCharacter but not `'`
+      JSXSingleStringCharacter ::
+        JSXStringCharacter but not `'`
+
     </emu-grammar>
   </emu-clause>
 
@@ -173,17 +174,110 @@ render(dropdown);
         JSXFragment
         `{` JSXChildExpression? `}`
 
-      JSXText :
+      JSXText ::
         JSXTextCharacter JSXText?
 
-      JSXTextCharacter :
-        SourceCharacter but not one of `{` or `<` or `>` or `}`
+      JSXTextCharacter ::
+        JSXStringCharacter but not one of `{` or `<` or `>` or `}`
 
       JSXChildExpression :
         AssignmentExpression
         `...` AssignmentExpression
 
     </emu-grammar>
+  </emu-clause>
+
+  <emu-clause id="sec-jsx-string">
+    <h1>JSX Strings</h1>
+
+
+    <emu-clause id="sec-jsx-string-characters">
+      <h1>JSX String Characters</h1>
+
+      <p>Historically, string characters within |JSXAttributeValue| and |JSXText| are extended to allow the presence of <emu-xref href="#sec-HTMLCharacterReference">HTML character references</emu-xref> to make copy-pasting between HTML and JSX easier, at the cost of not supporting `\\` |EscapeSequence| of ECMAScript's |StringLiteral|. We may revisit this decision in the future.</p>
+      
+      <h2>Syntax</h2>
+
+      <emu-grammar>
+        JSXStringCharacter::
+          SourceCharacter but not one of HTMLCharacterReference
+      </emu-grammar>
+    </emu-clause>
+
+    <emu-clause id="sec-HTMLCharacterReference">
+      <h1>HTML Character References</h1>
+      <emu-note>
+      <p>The grammars here followed <a href="https://html.spec.whatwg.org/multipage/syntax.html#character-references">the living HTML standard</a>.</p>
+      </emu-note>
+
+      <h2>Syntax</h2>
+
+      <emu-grammar>
+        HTMLCharacterReference::
+          HTMLDecimalCharacterReference
+          HTMLHexCharacterReference
+          HTMLNamedCharacterReference
+
+        HTMLDecimalCharacterReference::
+          `&` `#` DecimalDigits [> but only if MV of |DecimalDigits| ≦ 0x10FFFF] `;`
+
+        HTMLHexCharacterReference::
+          `&` `#` `x` HexDigits [> but only if MV of |HexDigits| ≦ 0x10FFFF] `;`
+
+        HTMLNamedCharacterReference::
+          `&` HTMLNamedCharacterReferenceName `;`
+
+        HTMLNamedCharacterReferenceName::
+          > List of 252 character entity references defined in HTML4 standard
+      </emu-grammar>
+
+      <emu-note> 
+        <p>
+          This means that the later expansion of this list to <a href="https://html.spec.whatwg.org/multipage/named-characters.html#named-character-references">2231 named character references</a> since HTML5 are intentionally <i>excluded</i> from the support.
+        </p>
+        <p>
+          The list of 252 character entity references defined in HTML4 standard can be found <a href="https://www.w3.org/TR/1999/REC-html401-19991224/sgml/entities.html">at here</a>.
+        </p>
+      </emu-note>
+    </emu-clause>
+
+
+    <emu-clause id="sec-jsx-JSXString">
+      <h1>JSX String Definition</h1>
+      <h2>Syntax</h2>
+      <emu-grammar>
+        JSXString :
+          JSXDoubleStringCharacters
+          JSXSingleStringCharacters
+          JSXText
+      </emu-grammar>
+
+      <emu-clause type="sdo" id="sec-jsx-JSXString-SV">
+        <h1>Static Semantics: SV</h1>
+        <p>An implementation may convert |JSXString| into a ECMAScript String value. In order to do this, JSX extends the syntax-directed operation <a href="https://tc39.es/ecma262/#sec-static-semantics-sv">SV</a> to |JSXStringCharacter|:</p> 
+        <ins class="block">
+          <ul>
+            <li>
+                The SV of <emu-grammar> JSXStringCharacter :: SourceCharacter </emu-grammar> is the result of performing <a href="https://tc39.es/ecma262/#sec-utf16encodecodepoint">UTF16EncodeCodePoint</a> on the code point matched by |SourceCharacter|.
+            </li>
+            <li>
+                The SV of <emu-grammar> HTMLDecimalCharacterReference:: `&` `#` DecimalDigits `;` </emu-grammar> is the same as the result of performing <a href="https://tc39.es/ecma262/#sec-utf16encodecodepoint">UTF16EncodeCodePoint</a> on the MV of |DecimalDigits|
+            </li>
+            <li>
+                The SV of <emu-grammar>HTMLHexCharacterReference:: `&` `#` `x` HexDigits `;` </emu-grammar> is the same as the result of performing <a href="https://tc39.es/ecma262/#sec-utf16encodecodepoint">UTF16EncodeCodePoint</a> on the MV of |HexDigits|
+            </li>
+            <li>
+                The SV of <emu-grammar>HTMLNamedCharacterReference:: `&` HTMLNamedCharacterReferenceName `;` </emu-grammar> is the same as the result of performing <a href="https://tc39.es/ecma262/#sec-utf16encodecodepoint">UTF16EncodeCodePoint</a> on the code points matched by |HTMLNamedCharacterReferenceName| according the implementation-defined list of names.
+            </li>
+          </ul>
+        </ins>
+
+        <p>The exact approach to fulfill the extended sematics is <a href="https://tc39.es/ecma262/#implementation-defined">implementation-defined</a>.</p>
+        <emu-note>
+            For example, at the time of writing, Babel implemented this in its <a href="https://github.com/babel/babel/blob/main/packages/babel-parser/src/plugins/jsx/index.js">JSX parser</a>, while TypeScript implemented it via a <a href="https://github.com/microsoft/TypeScript/blob/main/src/compiler/transformers/jsx.ts">JSX transformer</a>.
+        </emu-note>
+      </emu-clause>
+    </emu-clause>
   </emu-clause>
 </emu-clause>
 
