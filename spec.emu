@@ -52,7 +52,7 @@ render(dropdown);
 
     <h2>Syntax</h2>
     <emu-grammar>
-      PrimaryExpression ::
+      PrimaryExpression :
         <ins>JSXElementOrFragment `<`</ins>
         <ins>JSXElementOrFragment</ins>
     </emu-grammar>
