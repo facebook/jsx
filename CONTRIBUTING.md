@@ -13,7 +13,7 @@ The [Open Source Guides](https://opensource.guide/) website has a collection of 
 
 Our current focus is to correctly document the existing semantics in the implementation reality, and collaboratively discuss and spec out where implementations diverged to minimize inconsistencies of using JSX. 
 
-To report a spec bug, we encourage you to attach links to the relevant implementations. Some great examples are #120, https://github.com/facebook/jsx/pull/136#issuecomment-1050755242.
+To report a spec bug, we encourage you to attach links to the relevant implementations like [here](https://github.com/facebook/jsx/issues/120) and [here](https://github.com/facebook/jsx/pull/136#issuecomment-1050755242).
 
 ### Feature Proposals
 
