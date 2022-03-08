@@ -104,6 +104,28 @@ Prior Art
 
 The JSX syntax is similar to the [E4X Specification (ECMA-357)](http://www.ecma-international.org/publications/files/ECMA-ST-WITHDRAWN/Ecma-357.pdf). E4X is a deprecated specification with deep reaching semantic meaning. JSX partially overlaps with a tiny subset of the E4X syntax. However, JSX has no relation to the E4X specification.
 
+
+Contributing
+------------
+
+The main purpose of this repository is to continue evolving JSX. We are grateful to the community for contributing bugfixes and improvements.
+
+### [Code of Conduct](https://code.fb.com/codeofconduct)
+
+Meta has adopted a Code of Conduct that we expect project participants to adhere to. Please read [the full text](https://code.fb.com/codeofconduct) so that you can understand what actions will and will not be tolerated.
+
+### Contribute Guide
+
+Thank you for your interest in contributing to JSX. As JSX has being widely adopted and perceived as being stablized for years, the team has been convinced that it's not worth the churn for existing JSX users to take any non-trivial changes. Therefore, our current focus is to correctly document the existing semantics to align with the implementation reality, and spec out where implementations diverged to minimize inconsistencies of using JSX. Feature proposals are still welcome but they will only be considered as part of a larger and cohesive breaking changes such as JSX 2.0.
+
+
+#### Contributing To The Spec
+
+The JSX specification is written in [ecmarkup](https://github.com/tc39/ecmarkup), TC39's official tool for specifying syntax and semantics of ECMAScript and generating spec websites. You can find how to use it there.
+
+We welcome both editorial and normative changes. However, normative changes may only be merged if a concensus can be reached from major implementations.
+
+
 License
 -------
 
