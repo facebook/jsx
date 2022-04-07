@@ -214,7 +214,7 @@ Search.prototype.search = function (searchString) {
   if (/^[\d.]*$/.test(searchString)) {
     results = this.biblio.clauses
       .filter(clause => clause.number.substring(0, searchString.length) === searchString)
-      .map(clause => ({ entry: clause }));
+      .map(clause => ({ key: getKey(clause), entry: clause }));
   } else {
     results = [];
 
@@ -455,23 +455,66 @@ Menu.prototype.revealInToc = function (path) {
 };
 
 function findActiveClause(root, path) {
-  let clauses = getChildClauses(root);
   path = path || [];
 
-  for (let $clause of clauses) {
-    let rect = $clause.getBoundingClientRect();
+  let visibleClauses = getVisibleClauses(root, path);
+  let midpoint = Math.floor(window.innerHeight / 2);
+
+  for (let [$clause, path] of visibleClauses) {
+    let { top: clauseTop, bottom: clauseBottom } = $clause.getBoundingClientRect();
+    let isFullyVisibleAboveTheFold =
+      clauseTop > 0 && clauseTop < midpoint && clauseBottom < window.innerHeight;
+    if (isFullyVisibleAboveTheFold) {
+      return path;
+    }
+  }
+
+  visibleClauses.sort(([, pathA], [, pathB]) => pathB.length - pathA.length);
+  for (let [$clause, path] of visibleClauses) {
+    let { top: clauseTop, bottom: clauseBottom } = $clause.getBoundingClientRect();
     let $header = $clause.querySelector('h1');
+    let clauseStyles = getComputedStyle($clause);
     let marginTop = Math.max(
-      parseInt(getComputedStyle($clause)['margin-top']),
+      0,
+      parseInt(clauseStyles['margin-top']),
       parseInt(getComputedStyle($header)['margin-top'])
     );
-
-    if (rect.top - marginTop <= 1 && rect.bottom > 0) {
-      return findActiveClause($clause, path.concat($clause)) || path;
+    let marginBottom = Math.max(0, parseInt(clauseStyles['margin-bottom']));
+    let crossesMidpoint =
+      clauseTop - marginTop <= midpoint && clauseBottom + marginBottom >= midpoint;
+    if (crossesMidpoint) {
+      return path;
     }
   }
 
   return path;
+}
+
+function getVisibleClauses(root, path) {
+  let childClauses = getChildClauses(root);
+  path = path || [];
+
+  let result = [];
+
+  let seenVisibleClause = false;
+  for (let $clause of childClauses) {
+    let { top: clauseTop, bottom: clauseBottom } = $clause.getBoundingClientRect();
+    let isPartiallyVisible =
+      (clauseTop > 0 && clauseTop < window.innerHeight) ||
+      (clauseBottom > 0 && clauseBottom < window.innerHeight) ||
+      (clauseTop < 0 && clauseBottom > window.innerHeight);
+
+    if (isPartiallyVisible) {
+      seenVisibleClause = true;
+      let innerPath = path.concat($clause);
+      result.push([$clause, innerPath]);
+      result.push(...getVisibleClauses($clause, innerPath));
+    } else if (seenVisibleClause) {
+      break;
+    }
+  }
+
+  return result;
 }
 
 function* getChildClauses(root) {
@@ -754,6 +797,7 @@ let referencePane = {
 
     let $spacer = document.createElement('div');
     $spacer.setAttribute('id', 'references-pane-spacer');
+    $spacer.classList.add('menu-spacer');
 
     this.$pane = document.createElement('div');
     this.$pane.setAttribute('id', 'references-pane');
@@ -902,6 +946,7 @@ let Toolbox = {
       e.preventDefault();
       e.stopPropagation();
       menu.togglePinEntry(this.entry.id);
+      this.$pinLink.textContent = menu._pinnedIds[this.entry.id] ? 'Unpin' : 'Pin';
     });
 
     this.$refsLink = document.createElement('a');
@@ -922,6 +967,7 @@ let Toolbox = {
     sdoBox.deactivate();
     this.active = true;
     this.entry = entry;
+    this.$pinLink.textContent = menu._pinnedIds[entry.id] ? 'Unpin' : 'Pin';
     this.$outer.classList.add('active');
     this.top = el.offsetTop - this.$outer.offsetHeight;
     this.left = el.offsetLeft - 10;
@@ -1117,41 +1163,270 @@ document.addEventListener('DOMContentLoaded', () => {
   referencePane.init();
 });
 
-'use strict';
-let decimalBullet = Array.from({ length: 100 }, (a, i) => '' + (i + 1));
-let alphaBullet = Array.from({ length: 26 }, (a, i) => String.fromCharCode('a'.charCodeAt(0) + i));
+// preserve state during navigation
 
-// prettier-ignore
-let romanBullet = ['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix', 'x', 'xi', 'xii', 'xiii', 'xiv', 'xv', 'xvi', 'xvii', 'xviii', 'xix', 'xx', 'xxi', 'xxii', 'xxiii', 'xxiv', 'xxv'];
-// prettier-ignore
-let bullets = [decimalBullet, alphaBullet, romanBullet, decimalBullet, alphaBullet, romanBullet];
-
-function addStepNumberText(ol, parentIndex) {
-  for (let i = 0; i < ol.children.length; ++i) {
-    let child = ol.children[i];
-    let index = parentIndex.concat([i]);
-    let applicable = bullets[Math.min(index.length - 1, 5)];
-    let span = document.createElement('span');
-    span.textContent = (applicable[i] || '?') + '. ';
-    span.style.fontSize = '0';
-    span.setAttribute('aria-hidden', 'true');
-    child.prepend(span);
-    let sublist = child.querySelector('ol');
-    if (sublist != null) {
-      addStepNumberText(sublist, index);
+function getTocPath(li) {
+  let path = [];
+  let pointer = li;
+  while (true) {
+    let parent = pointer.parentElement;
+    if (parent == null) {
+      return null;
+    }
+    let index = [].indexOf.call(parent.children, pointer);
+    if (index == -1) {
+      return null;
+    }
+    path.unshift(index);
+    pointer = parent.parentElement;
+    if (pointer == null) {
+      return null;
+    }
+    if (pointer.id === 'menu-toc') {
+      break;
+    }
+    if (pointer.tagName !== 'LI') {
+      return null;
     }
   }
+  return path;
 }
+
+function activateTocPath(path) {
+  try {
+    let pointer = document.getElementById('menu-toc');
+    for (let index of path) {
+      pointer = pointer.querySelector('ol').children[index];
+    }
+    pointer.classList.add('active');
+  } catch (e) {
+    // pass
+  }
+}
+
+function getActiveTocPaths() {
+  return [...menu.$menu.querySelectorAll('.active')].map(getTocPath).filter(p => p != null);
+}
+
+function initTOCExpansion(visibleItemLimit) {
+  // Initialize to a reasonable amount of TOC expansion:
+  // * Expand any full-breadth nesting level up to visibleItemLimit.
+  // * Expand any *single-item* level while under visibleItemLimit (even if that pushes over it).
+
+  // Limit to initialization by bailing out if any parent item is already expanded.
+  const tocItems = Array.from(document.querySelectorAll('#menu-toc li'));
+  if (tocItems.some(li => li.classList.contains('active') && li.querySelector('li'))) {
+    return;
+  }
+
+  const selfAndSiblings = maybe => Array.from(maybe?.parentNode.children ?? []);
+  let currentLevelItems = selfAndSiblings(tocItems[0]);
+  let availableCount = visibleItemLimit - currentLevelItems.length;
+  while (availableCount > 0 && currentLevelItems.length) {
+    const nextLevelItems = currentLevelItems.flatMap(li => selfAndSiblings(li.querySelector('li')));
+    availableCount -= nextLevelItems.length;
+    if (availableCount > 0 || currentLevelItems.length === 1) {
+      // Expand parent items of the next level down (i.e., current-level items with children).
+      for (const ol of new Set(nextLevelItems.map(li => li.parentNode))) {
+        ol.closest('li').classList.add('active');
+      }
+    }
+    currentLevelItems = nextLevelItems;
+  }
+}
+
+function initState() {
+  if (typeof menu === 'undefined' || window.navigating) {
+    return;
+  }
+  const storage = typeof sessionStorage !== 'undefined' ? sessionStorage : Object.create(null);
+  if (storage.referencePaneState != null) {
+    let state = JSON.parse(storage.referencePaneState);
+    if (state != null) {
+      if (state.type === 'ref') {
+        let entry = menu.search.biblio.byId[state.id];
+        if (entry != null) {
+          referencePane.showReferencesFor(entry);
+        }
+      } else if (state.type === 'sdo') {
+        let sdos = sdoMap[state.id];
+        if (sdos != null) {
+          referencePane.$headerText.innerHTML = state.html;
+          referencePane.showSDOsBody(sdos, state.id);
+        }
+      }
+      delete storage.referencePaneState;
+    }
+  }
+
+  if (storage.activeTocPaths != null) {
+    document.querySelectorAll('#menu-toc li.active').forEach(li => li.classList.remove('active'));
+    let active = JSON.parse(storage.activeTocPaths);
+    active.forEach(activateTocPath);
+    delete storage.activeTocPaths;
+  } else {
+    initTOCExpansion(20);
+  }
+
+  if (storage.searchValue != null) {
+    let value = JSON.parse(storage.searchValue);
+    menu.search.$searchBox.value = value;
+    menu.search.search(value);
+    delete storage.searchValue;
+  }
+
+  if (storage.tocScroll != null) {
+    let tocScroll = JSON.parse(storage.tocScroll);
+    menu.$toc.scrollTop = tocScroll;
+    delete storage.tocScroll;
+  }
+}
+
+document.addEventListener('DOMContentLoaded', initState);
+
+window.addEventListener('pageshow', initState);
+
+window.addEventListener('beforeunload', () => {
+  if (!window.sessionStorage || typeof menu === 'undefined') {
+    return;
+  }
+  sessionStorage.referencePaneState = JSON.stringify(referencePane.state || null);
+  sessionStorage.activeTocPaths = JSON.stringify(getActiveTocPaths());
+  sessionStorage.searchValue = JSON.stringify(menu.search.$searchBox.value);
+  sessionStorage.tocScroll = JSON.stringify(menu.$toc.scrollTop);
+});
+
+'use strict';
+
+// Manually prefix algorithm step list items with hidden counter representations
+// corresponding with their markers so they get selected and copied with content.
+// We read list-style-type to avoid divergence with the style sheet, but
+// for efficiency assume that all lists at the same nesting depth use the same
+// style (except for those associated with replacement steps).
+// We also precompute some initial items for each supported style type.
+// https://w3c.github.io/csswg-drafts/css-counter-styles/
+
+const lowerLetters = Array.from({ length: 26 }, (_, i) =>
+  String.fromCharCode('a'.charCodeAt(0) + i)
+);
+// Implement the lower-alpha 'alphabetic' algorithm,
+// adjusting for indexing from 0 rather than 1.
+// https://w3c.github.io/csswg-drafts/css-counter-styles/#simple-alphabetic
+// https://w3c.github.io/csswg-drafts/css-counter-styles/#alphabetic-system
+const lowerAlphaTextForIndex = i => {
+  let S = '';
+  for (const N = lowerLetters.length; i >= 0; i--) {
+    S = lowerLetters[i % N] + S;
+    i = Math.floor(i / N);
+  }
+  return S;
+};
+
+const weightedLowerRomanSymbols = Object.entries({
+  m: 1000,
+  cm: 900,
+  d: 500,
+  cd: 400,
+  c: 100,
+  xc: 90,
+  l: 50,
+  xl: 40,
+  x: 10,
+  ix: 9,
+  v: 5,
+  iv: 4,
+  i: 1,
+});
+// Implement the lower-roman 'additive' algorithm,
+// adjusting for indexing from 0 rather than 1.
+// https://w3c.github.io/csswg-drafts/css-counter-styles/#simple-numeric
+// https://w3c.github.io/csswg-drafts/css-counter-styles/#additive-system
+const lowerRomanTextForIndex = i => {
+  let value = i + 1;
+  let S = '';
+  for (const [symbol, weight] of weightedLowerRomanSymbols) {
+    if (!value) break;
+    if (weight > value) continue;
+    const reps = Math.floor(value / weight);
+    S += symbol.repeat(reps);
+    value -= weight * reps;
+  }
+  return S;
+};
+
+// Memoize pure index-to-text functions with an exposed cache for fast retrieval.
+const makeCounter = (pureGetTextForIndex, precomputeCount = 30) => {
+  const cache = Array.from({ length: precomputeCount }, (_, i) => pureGetTextForIndex(i));
+  const getTextForIndex = i => {
+    if (i >= cache.length) cache[i] = pureGetTextForIndex(i);
+    return cache[i];
+  };
+  return { getTextForIndex, cache };
+};
+
+const counterByStyle = {
+  __proto__: null,
+  decimal: makeCounter(i => String(i + 1)),
+  'lower-alpha': makeCounter(lowerAlphaTextForIndex),
+  'upper-alpha': makeCounter(i => lowerAlphaTextForIndex(i).toUpperCase()),
+  'lower-roman': makeCounter(lowerRomanTextForIndex),
+  'upper-roman': makeCounter(i => lowerRomanTextForIndex(i).toUpperCase()),
+};
+const fallbackCounter = makeCounter(() => '?');
+const counterByDepth = [];
+
+function addStepNumberText(
+  ol,
+  depth = 0,
+  special = [...ol.classList].some(c => c.startsWith('nested-'))
+) {
+  let counter = !special && counterByDepth[depth];
+  if (!counter) {
+    const counterStyle = getComputedStyle(ol)['list-style-type'];
+    counter = counterByStyle[counterStyle];
+    if (!counter) {
+      console.warn('unsupported list-style-type', {
+        ol,
+        counterStyle,
+        id: ol.closest('[id]')?.getAttribute('id'),
+      });
+      counterByStyle[counterStyle] = fallbackCounter;
+      counter = fallbackCounter;
+    }
+    if (!special) {
+      counterByDepth[depth] = counter;
+    }
+  }
+  const { cache, getTextForIndex } = counter;
+  let i = (Number(ol.getAttribute('start')) || 1) - 1;
+  for (const li of ol.children) {
+    const marker = document.createElement('span');
+    marker.textContent = `${i < cache.length ? cache[i] : getTextForIndex(i)}. `;
+    marker.setAttribute('aria-hidden', 'true');
+    const attributesContainer = li.querySelector('.attributes-tag');
+    if (attributesContainer == null) {
+      li.prepend(marker);
+    } else {
+      attributesContainer.insertAdjacentElement('afterend', marker);
+    }
+    for (const sublist of li.querySelectorAll(':scope > ol')) {
+      addStepNumberText(sublist, depth + 1, special);
+    }
+    i++;
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('emu-alg > ol').forEach(ol => {
-    addStepNumberText(ol, []);
+    addStepNumberText(ol);
   });
 });
 
 let sdoMap = JSON.parse(`{"prod-KCDyML_C":{"Early":{"clause":"1.2.1","ids":["prod-p4aAXPL4"]}}}`);
-let biblio = JSON.parse(`{"refsByClause":{"sec-jsx-string-characters":["_ref_0","_ref_60","_ref_61","_ref_62"],"sec-jsx-PrimaryExpression":["_ref_1","_ref_2"],"sec-jsx-elements":["_ref_3","_ref_4","_ref_5","_ref_6","_ref_7","_ref_8","_ref_9","_ref_10","_ref_11","_ref_12","_ref_13","_ref_14","_ref_15","_ref_16","_ref_17","_ref_18","_ref_19","_ref_20","_ref_21","_ref_22","_ref_23","_ref_24"],"sec-jsx-elements-early-errors":["_ref_25","_ref_26","_ref_27","_ref_28","_ref_29","_ref_30","_ref_31"],"sec-jsx-attributes":["_ref_32","_ref_33","_ref_34","_ref_35","_ref_36","_ref_37","_ref_38","_ref_39","_ref_40","_ref_41","_ref_42","_ref_43","_ref_44","_ref_45","_ref_46","_ref_47","_ref_48","_ref_49","_ref_50"],"sec-jsx-children":["_ref_51","_ref_52","_ref_53","_ref_54","_ref_55","_ref_56","_ref_57","_ref_58","_ref_59"],"sec-HTMLCharacterReference":["_ref_63","_ref_64","_ref_65","_ref_66"],"sec-jsx-JSXString":["_ref_67","_ref_68","_ref_69"],"sec-jsx-JSXString-SV":["_ref_70","_ref_71","_ref_72","_ref_73"]},"entries":[{"type":"clause","id":"sec-rationale","titleHTML":"Rationale","number":""},{"type":"clause","id":"sec-intro","titleHTML":"Introduction","number":""},{"type":"clause","id":"sec-jsx-PrimaryExpression","titleHTML":"Modified Productions","number":"1.1"},{"type":"production","id":"prod-JSXElement","name":"JSXElement","referencingIds":["_ref_1","_ref_43","_ref_54"]},{"type":"production","id":"prod-JSXSelfClosingElement","name":"JSXSelfClosingElement","referencingIds":["_ref_3"]},{"type":"production","id":"prod-JSXOpeningElement","name":"JSXOpeningElement","referencingIds":["_ref_4","_ref_25","_ref_29"]},{"type":"production","id":"prod-JSXClosingElement","name":"JSXClosingElement","referencingIds":["_ref_6","_ref_27","_ref_31"]},{"type":"production","id":"prod-JSXFragment","name":"JSXFragment","referencingIds":["_ref_2","_ref_44","_ref_55"]},{"type":"production","id":"prod-JSXElementName","name":"JSXElementName","referencingIds":["_ref_7","_ref_9","_ref_11","_ref_28","_ref_30"]},{"type":"production","id":"prod-JSXIdentifier","name":"JSXIdentifier","referencingIds":["_ref_13","_ref_16","_ref_17","_ref_18","_ref_19","_ref_20","_ref_21","_ref_22","_ref_24","_ref_38"]},{"type":"production","id":"prod-JSXNamespacedName","name":"JSXNamespacedName","referencingIds":["_ref_14","_ref_39"]},{"type":"production","id":"prod-JSXMemberExpression","name":"JSXMemberExpression","referencingIds":["_ref_15","_ref_23"]},{"type":"clause","id":"sec-jsx-elements-early-errors","titleHTML":"Static Semantics: Early Errors","number":"1.2.1"},{"type":"clause","id":"sec-jsx-elements","titleHTML":"JSX Elements","number":"1.2"},{"type":"production","id":"prod-JSXAttributes","name":"JSXAttributes","referencingIds":["_ref_8","_ref_10","_ref_33","_ref_35"]},{"type":"production","id":"prod-JSXSpreadAttribute","name":"JSXSpreadAttribute","referencingIds":["_ref_32"]},{"type":"production","id":"prod-JSXAttribute","name":"JSXAttribute","referencingIds":["_ref_34"]},{"type":"production","id":"prod-JSXAttributeName","name":"JSXAttributeName","referencingIds":["_ref_36"]},{"type":"production","id":"prod-JSXAttributeInitializer","name":"JSXAttributeInitializer","referencingIds":["_ref_37"]},{"type":"production","id":"prod-JSXAttributeValue","name":"JSXAttributeValue","referencingIds":["_ref_40","_ref_60"]},{"type":"production","id":"prod-JSXDoubleStringCharacters","name":"JSXDoubleStringCharacters","referencingIds":["_ref_41","_ref_46","_ref_67"]},{"type":"production","id":"prod-JSXDoubleStringCharacter","name":"JSXDoubleStringCharacter","referencingIds":["_ref_45"]},{"type":"production","id":"prod-JSXSingleStringCharacters","name":"JSXSingleStringCharacters","referencingIds":["_ref_42","_ref_49","_ref_68"]},{"type":"production","id":"prod-JSXSingleStringCharacter","name":"JSXSingleStringCharacter","referencingIds":["_ref_48"]},{"type":"clause","id":"sec-jsx-attributes","titleHTML":"JSX Attributes","number":"1.3"},{"type":"production","id":"prod-JSXChildren","name":"JSXChildren","referencingIds":["_ref_5","_ref_12","_ref_26","_ref_52"]},{"type":"production","id":"prod-JSXChild","name":"JSXChild","referencingIds":["_ref_51"]},{"type":"production","id":"prod-JSXText","name":"JSXText","referencingIds":["_ref_53","_ref_58","_ref_61","_ref_69"]},{"type":"production","id":"prod-JSXTextCharacter","name":"JSXTextCharacter","referencingIds":["_ref_57"]},{"type":"production","id":"prod-JSXChildExpression","name":"JSXChildExpression","referencingIds":["_ref_56"]},{"type":"clause","id":"sec-jsx-children","titleHTML":"JSX Children","number":"1.4"},{"type":"production","id":"prod-JSXStringCharacter","name":"JSXStringCharacter","referencingIds":["_ref_47","_ref_50","_ref_59","_ref_71"]},{"type":"clause","id":"sec-jsx-string-characters","titleHTML":"JSX String Characters","number":"1.5.1"},{"type":"production","id":"prod-HTMLCharacterReference","name":"HTMLCharacterReference","referencingIds":["_ref_62"]},{"type":"production","id":"prod-HTMLDecimalCharacterReference","name":"HTMLDecimalCharacterReference","referencingIds":["_ref_63"]},{"type":"production","id":"prod-HTMLHexCharacterReference","name":"HTMLHexCharacterReference","referencingIds":["_ref_64"]},{"type":"production","id":"prod-HTMLNamedCharacterReference","name":"HTMLNamedCharacterReference","referencingIds":["_ref_65"]},{"type":"production","id":"prod-HTMLNamedCharacterReferenceName","name":"HTMLNamedCharacterReferenceName","referencingIds":["_ref_66","_ref_72","_ref_73"]},{"type":"clause","id":"sec-HTMLCharacterReference","titleHTML":"HTML Character References","number":"1.5.2","referencingIds":["_ref_0"]},{"type":"production","id":"prod-JSXString","name":"JSXString","referencingIds":["_ref_70"]},{"type":"clause","id":"sec-jsx-JSXString-SV","titleHTML":"Static Semantics: SV","number":"1.5.3.1"},{"type":"clause","id":"sec-jsx-JSXString","titleHTML":"JSX String Definition","number":"1.5.3"},{"type":"clause","id":"sec-jsx-string","titleHTML":"JSX Strings","number":"1.5"},{"type":"clause","id":"sec-jsx","titleHTML":"JSX Definition","number":"1"},{"type":"clause","id":"sec-why-not-template-literals","titleHTML":"Why not Template Literals?","number":"A"},{"type":"clause","id":"sec-why-not-JXON","titleHTML":"Why not JXON?","number":"B"},{"type":"clause","id":"sec-prior-art","titleHTML":"Prior Art","number":"C"},{"type":"clause","id":"sec-license","titleHTML":"License","number":"D"}]}`);
+let biblio = JSON.parse(`{"refsByClause":{"sec-jsx-string-characters":["_ref_0","_ref_62","_ref_63","_ref_64"],"sec-jsx-PrimaryExpression":["_ref_1","_ref_2"],"sec-jsx-elements":["_ref_3","_ref_4","_ref_5","_ref_6","_ref_7","_ref_8","_ref_9","_ref_10","_ref_11","_ref_12","_ref_13","_ref_14","_ref_15","_ref_16","_ref_17","_ref_18","_ref_19","_ref_20","_ref_21","_ref_22","_ref_23","_ref_24","_ref_32","_ref_33"],"sec-jsx-elements-early-errors":["_ref_25","_ref_26","_ref_27","_ref_28","_ref_29","_ref_30","_ref_31"],"sec-jsx-attributes":["_ref_34","_ref_35","_ref_36","_ref_37","_ref_38","_ref_39","_ref_40","_ref_41","_ref_42","_ref_43","_ref_44","_ref_45","_ref_46","_ref_47","_ref_48","_ref_49","_ref_50","_ref_51","_ref_52"],"sec-jsx-children":["_ref_53","_ref_54","_ref_55","_ref_56","_ref_57","_ref_58","_ref_59","_ref_60","_ref_61"],"sec-HTMLCharacterReference":["_ref_65","_ref_66","_ref_67","_ref_68"],"sec-jsx-JSXString":["_ref_69","_ref_70","_ref_71"],"sec-jsx-JSXString-SV":["_ref_72","_ref_73","_ref_74","_ref_75"]},"entries":[{"type":"clause","id":"sec-rationale","titleHTML":"Rationale","number":""},{"type":"clause","id":"sec-intro","titleHTML":"Introduction","number":""},{"type":"clause","id":"sec-jsx-PrimaryExpression","titleHTML":"Modified Productions","number":"1.1"},{"type":"production","id":"prod-JSXElement","name":"JSXElement","referencingIds":["_ref_1","_ref_45","_ref_56"]},{"type":"production","id":"prod-JSXSelfClosingElement","name":"JSXSelfClosingElement","referencingIds":["_ref_3"]},{"type":"production","id":"prod-JSXOpeningElement","name":"JSXOpeningElement","referencingIds":["_ref_4","_ref_25","_ref_29"]},{"type":"production","id":"prod-JSXClosingElement","name":"JSXClosingElement","referencingIds":["_ref_6","_ref_27","_ref_31"]},{"type":"production","id":"prod-JSXFragment","name":"JSXFragment","referencingIds":["_ref_2","_ref_46","_ref_57"]},{"type":"production","id":"prod-JSXElementName","name":"JSXElementName","referencingIds":["_ref_7","_ref_9","_ref_11","_ref_28","_ref_30"]},{"type":"production","id":"prod-JSXIdentifier","name":"JSXIdentifier","referencingIds":["_ref_13","_ref_16","_ref_17","_ref_18","_ref_19","_ref_20","_ref_21","_ref_22","_ref_24","_ref_32","_ref_33","_ref_40"]},{"type":"production","id":"prod-JSXNamespacedName","name":"JSXNamespacedName","referencingIds":["_ref_14","_ref_41"]},{"type":"production","id":"prod-JSXMemberExpression","name":"JSXMemberExpression","referencingIds":["_ref_15","_ref_23"]},{"type":"clause","id":"sec-jsx-elements-early-errors","titleHTML":"Static Semantics: Early Errors","number":"1.2.1"},{"type":"clause","id":"sec-jsx-elements","titleHTML":"JSX Elements","number":"1.2"},{"type":"production","id":"prod-JSXAttributes","name":"JSXAttributes","referencingIds":["_ref_8","_ref_10","_ref_35","_ref_37"]},{"type":"production","id":"prod-JSXSpreadAttribute","name":"JSXSpreadAttribute","referencingIds":["_ref_34"]},{"type":"production","id":"prod-JSXAttribute","name":"JSXAttribute","referencingIds":["_ref_36"]},{"type":"production","id":"prod-JSXAttributeName","name":"JSXAttributeName","referencingIds":["_ref_38"]},{"type":"production","id":"prod-JSXAttributeInitializer","name":"JSXAttributeInitializer","referencingIds":["_ref_39"]},{"type":"production","id":"prod-JSXAttributeValue","name":"JSXAttributeValue","referencingIds":["_ref_42","_ref_62"]},{"type":"production","id":"prod-JSXDoubleStringCharacters","name":"JSXDoubleStringCharacters","referencingIds":["_ref_43","_ref_48","_ref_69"]},{"type":"production","id":"prod-JSXDoubleStringCharacter","name":"JSXDoubleStringCharacter","referencingIds":["_ref_47"]},{"type":"production","id":"prod-JSXSingleStringCharacters","name":"JSXSingleStringCharacters","referencingIds":["_ref_44","_ref_51","_ref_70"]},{"type":"production","id":"prod-JSXSingleStringCharacter","name":"JSXSingleStringCharacter","referencingIds":["_ref_50"]},{"type":"clause","id":"sec-jsx-attributes","titleHTML":"JSX Attributes","number":"1.3"},{"type":"production","id":"prod-JSXChildren","name":"JSXChildren","referencingIds":["_ref_5","_ref_12","_ref_26","_ref_54"]},{"type":"production","id":"prod-JSXChild","name":"JSXChild","referencingIds":["_ref_53"]},{"type":"production","id":"prod-JSXText","name":"JSXText","referencingIds":["_ref_55","_ref_60","_ref_63","_ref_71"]},{"type":"production","id":"prod-JSXTextCharacter","name":"JSXTextCharacter","referencingIds":["_ref_59"]},{"type":"production","id":"prod-JSXChildExpression","name":"JSXChildExpression","referencingIds":["_ref_58"]},{"type":"clause","id":"sec-jsx-children","titleHTML":"JSX Children","number":"1.4"},{"type":"production","id":"prod-JSXStringCharacter","name":"JSXStringCharacter","referencingIds":["_ref_49","_ref_52","_ref_61","_ref_73"]},{"type":"clause","id":"sec-jsx-string-characters","titleHTML":"JSX String Characters","number":"1.5.1"},{"type":"production","id":"prod-HTMLCharacterReference","name":"HTMLCharacterReference","referencingIds":["_ref_64"]},{"type":"production","id":"prod-HTMLDecimalCharacterReference","name":"HTMLDecimalCharacterReference","referencingIds":["_ref_65"]},{"type":"production","id":"prod-HTMLHexCharacterReference","name":"HTMLHexCharacterReference","referencingIds":["_ref_66"]},{"type":"production","id":"prod-HTMLNamedCharacterReference","name":"HTMLNamedCharacterReference","referencingIds":["_ref_67"]},{"type":"production","id":"prod-HTMLNamedCharacterReferenceName","name":"HTMLNamedCharacterReferenceName","referencingIds":["_ref_68","_ref_74","_ref_75"]},{"type":"clause","id":"sec-HTMLCharacterReference","titleHTML":"HTML Character References","number":"1.5.2","referencingIds":["_ref_0"]},{"type":"production","id":"prod-JSXString","name":"JSXString","referencingIds":["_ref_72"]},{"type":"clause","id":"sec-jsx-JSXString-SV","titleHTML":"Static Semantics: SV","number":"1.5.3.1"},{"type":"clause","id":"sec-jsx-JSXString","titleHTML":"JSX String Definition","number":"1.5.3"},{"type":"clause","id":"sec-jsx-string","titleHTML":"JSX Strings","number":"1.5"},{"type":"clause","id":"sec-jsx","titleHTML":"JSX Definition","number":"1"},{"type":"clause","id":"sec-why-not-template-literals","titleHTML":"Why not Template Literals?","number":"A"},{"type":"clause","id":"sec-why-not-JXON","titleHTML":"Why not JXON?","number":"B"},{"type":"clause","id":"sec-prior-art","titleHTML":"Prior Art","number":"C"},{"type":"clause","id":"sec-license","titleHTML":"License","number":"D"}]}`);
 ;let usesMultipage = false</script><style>body {
   display: flex;
+  word-wrap: break-word;
   font-size: 18px;
   line-height: 1.5;
   font-family: Cambria, Palatino Linotype, Palatino, Liberation Serif, serif;
@@ -1255,6 +1530,10 @@ var {
   transition: background-color 0.25s ease;
   cursor: pointer;
 }
+var.field {
+  font: inherit;
+  color: inherit;
+}
 
 var.referenced0 {
   color: inherit;
@@ -1338,6 +1617,10 @@ emu-alg ol.nested-lots ol {
   list-style-type: lower-roman;
 }
 
+emu-alg [aria-hidden='true'] {
+  font-size: 0;
+}
+
 emu-eqn {
   display: block;
   margin-left: 4em;
@@ -1389,7 +1672,7 @@ emu-note > div.note-contents > p:last-of-type {
   margin-bottom: 0;
 }
 
-emu-table td code {
+emu-table:not(.code) td code {
   white-space: normal;
 }
 
@@ -1900,7 +2183,7 @@ tr.del > td {
   z-index: 2;
 }
 
-#menu-spacer {
+.menu-spacer {
   flex-basis: 33%;
   max-width: 500px;
   flex-grow: 0;
@@ -2315,11 +2598,6 @@ li.menu-search-result-term:before {
   overflow-y: auto;
 }
 
-#references-pane-spacer {
-  flex-basis: 33%;
-  max-width: 500px;
-}
-
 #references-pane {
   flex-grow: 1;
   overflow: hidden;
@@ -2337,6 +2615,10 @@ li.menu-search-result-term:before {
   cursor: pointer;
 }
 
+#references-pane table tbody {
+  vertical-align: baseline;
+}
+
 #references-pane table tr td:first-child {
   text-align: right;
   padding-right: 5px;
@@ -2349,19 +2631,19 @@ li.menu-search-result-term:before {
 }
 
 [normative-optional],
+[deprecated],
 [legacy] {
   border-left: 5px solid #ff6600;
   padding: 0.5em;
-  display: block;
   background: #ffeedd;
 }
 
-.clause-attributes-tag {
+.attributes-tag {
   text-transform: uppercase;
   color: #884400;
 }
 
-.clause-attributes-tag a {
+.attributes-tag a {
   color: #884400;
 }
 
@@ -2414,7 +2696,7 @@ li.menu-search-result-term:before {
 </ul></div><div id="menu-toggle"><svg xmlns="http://www.w3.org/2000/svg" style="width:100%; height:100%; stroke:currentColor" viewBox="0 0 120 120">
       <title>Menu</title>
       <path stroke-width="10" stroke-linecap="round" d="M30,60 h60  M30,30 m0,5 h60  M30,90 m0,-5 h60"></path>
-    </svg></div><div id="menu-spacer"></div><div id="menu"><div id="menu-search"><input type="text" id="menu-search-box" placeholder="Search..."><div id="menu-search-results" class="inactive"></div></div><div id="menu-pins"><div class="menu-pane-header">Pins</div><ul id="menu-pins-list"></ul></div><div class="menu-pane-header">Table of Contents</div><div id="menu-toc"><ol class="toc"><li><span class="item-toggle">◢</span><a href="#sec-intro" title="Introduction">Introduction</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-rationale" title="Rationale">Rationale</a></li></ol></li><li><span class="item-toggle">◢</span><a href="#sec-jsx" title="JSX Definition"><span class="secnum">1</span> JSX Definition</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-jsx-PrimaryExpression" title="Modified Productions"><span class="secnum">1.1</span> Modified Productions</a></li><li><span class="item-toggle">◢</span><a href="#sec-jsx-elements" title="JSX Elements"><span class="secnum">1.2</span> JSX Elements</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-jsx-elements-early-errors" title="Static Semantics: Early Errors"><span class="secnum">1.2.1</span> SS: Early Errors</a></li></ol></li><li><span class="item-toggle-none"></span><a href="#sec-jsx-attributes" title="JSX Attributes"><span class="secnum">1.3</span> JSX Attributes</a></li><li><span class="item-toggle-none"></span><a href="#sec-jsx-children" title="JSX Children"><span class="secnum">1.4</span> JSX Children</a></li><li><span class="item-toggle">◢</span><a href="#sec-jsx-string" title="JSX Strings"><span class="secnum">1.5</span> JSX Strings</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-jsx-string-characters" title="JSX String Characters"><span class="secnum">1.5.1</span> JSX String Characters</a></li><li><span class="item-toggle-none"></span><a href="#sec-HTMLCharacterReference" title="HTML Character References"><span class="secnum">1.5.2</span> HTML Character References</a></li><li><span class="item-toggle">◢</span><a href="#sec-jsx-JSXString" title="JSX String Definition"><span class="secnum">1.5.3</span> JSX String Definition</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-jsx-JSXString-SV" title="Static Semantics: SV"><span class="secnum">1.5.3.1</span> SS: SV</a></li></ol></li></ol></li></ol></li><li><span class="item-toggle-none"></span><a href="#sec-why-not-template-literals" title="Why not Template Literals?"><span class="secnum">A</span> Why not Template Literals?</a></li><li><span class="item-toggle-none"></span><a href="#sec-why-not-JXON" title="Why not JXON?"><span class="secnum">B</span> Why not JXON?</a></li><li><span class="item-toggle-none"></span><a href="#sec-prior-art" title="Prior Art"><span class="secnum">C</span> Prior Art</a></li><li><span class="item-toggle-none"></span><a href="#sec-license" title="License"><span class="secnum">D</span> License</a></li></ol></div></div><div id="spec-container"><h1 class="version">Draft / April 26, 2023</h1><h1 class="title">JSX</h1>
+    </svg></div><div id="menu-spacer" class="menu-spacer"></div><div id="menu"><div id="menu-search"><input type="text" id="menu-search-box" placeholder="Search..."><div id="menu-search-results" class="inactive"></div></div><div id="menu-pins"><div class="menu-pane-header">Pins</div><ul id="menu-pins-list"></ul></div><div class="menu-pane-header">Table of Contents</div><div id="menu-toc"><ol class="toc"><li><span class="item-toggle">◢</span><a href="#sec-intro" title="Introduction">Introduction</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-rationale" title="Rationale">Rationale</a></li></ol></li><li><span class="item-toggle">◢</span><a href="#sec-jsx" title="JSX Definition"><span class="secnum">1</span> JSX Definition</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-jsx-PrimaryExpression" title="Modified Productions"><span class="secnum">1.1</span> Modified Productions</a></li><li><span class="item-toggle">◢</span><a href="#sec-jsx-elements" title="JSX Elements"><span class="secnum">1.2</span> JSX Elements</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-jsx-elements-early-errors" title="Static Semantics: Early Errors"><span class="secnum">1.2.1</span> SS: Early Errors</a></li></ol></li><li><span class="item-toggle-none"></span><a href="#sec-jsx-attributes" title="JSX Attributes"><span class="secnum">1.3</span> JSX Attributes</a></li><li><span class="item-toggle-none"></span><a href="#sec-jsx-children" title="JSX Children"><span class="secnum">1.4</span> JSX Children</a></li><li><span class="item-toggle">◢</span><a href="#sec-jsx-string" title="JSX Strings"><span class="secnum">1.5</span> JSX Strings</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-jsx-string-characters" title="JSX String Characters"><span class="secnum">1.5.1</span> JSX String Characters</a></li><li><span class="item-toggle-none"></span><a href="#sec-HTMLCharacterReference" title="HTML Character References"><span class="secnum">1.5.2</span> HTML Character References</a></li><li><span class="item-toggle">◢</span><a href="#sec-jsx-JSXString" title="JSX String Definition"><span class="secnum">1.5.3</span> JSX String Definition</a><ol class="toc"><li><span class="item-toggle-none"></span><a href="#sec-jsx-JSXString-SV" title="Static Semantics: SV"><span class="secnum">1.5.3.1</span> SS: SV</a></li></ol></li></ol></li></ol></li><li><span class="item-toggle-none"></span><a href="#sec-why-not-template-literals" title="Why not Template Literals?"><span class="secnum">A</span> Why not Template Literals?</a></li><li><span class="item-toggle-none"></span><a href="#sec-why-not-JXON" title="Why not JXON?"><span class="secnum">B</span> Why not JXON?</a></li><li><span class="item-toggle-none"></span><a href="#sec-prior-art" title="Prior Art"><span class="secnum">C</span> Prior Art</a></li><li><span class="item-toggle-none"></span><a href="#sec-license" title="License"><span class="secnum">D</span> License</a></li></ol></div></div><div id="spec-container"><h1 class="version">Draft / August 10, 2023</h1><h1 class="title">JSX</h1>
 
 <emu-intro id="sec-intro">
   <h1>Introduction</h1>
@@ -2452,12 +2734,16 @@ li.menu-search-result-term:before {
 
   <emu-clause id="sec-jsx-PrimaryExpression">
     <h1><span class="secnum">1.1</span> Modified Productions</h1>
-    <p>JSX extends the <emu-nt><a href="https://tc39.es/ecma262/#prod-PrimaryExpression">PrimaryExpression</a></emu-nt> in the <a href="https://tc39.es/ecma262/">ECMAScript (ECMA-262)</a> grammar:</p>
+    <p>JSX extends the <emu-nt>PrimaryExpression</emu-nt> in the <a href="https://tc39.es/ecma262/">ECMAScript (ECMA-262)</a> grammar:</p>
 
     <h2>Syntax</h2>
     <emu-grammar><emu-production name="PrimaryExpression">
-    <emu-nt><a href="https://tc39.es/ecma262/#prod-PrimaryExpression">PrimaryExpression</a></emu-nt> <emu-geq>:</emu-geq> <ins><emu-rhs a="ylbqkuqt"><emu-nt id="_ref_1"><a href="#prod-JSXElement">JSXElement</a></emu-nt></emu-rhs></ins>
-    <ins><emu-rhs a="xcc8tnvu"><emu-nt id="_ref_2"><a href="#prod-JSXFragment">JSXFragment</a></emu-nt></emu-rhs></ins>
+    <emu-nt>PrimaryExpression</emu-nt> <emu-geq>:</emu-geq> <ins><emu-rhs a="ylbqkuqt">
+        <emu-nt id="_ref_1"><a href="#prod-JSXElement">JSXElement</a></emu-nt>
+    </emu-rhs></ins>
+    <ins><emu-rhs a="xcc8tnvu">
+        <emu-nt id="_ref_2"><a href="#prod-JSXFragment">JSXFragment</a></emu-nt>
+    </emu-rhs></ins>
 </emu-production>
 </emu-grammar>
   </emu-clause>
@@ -2467,7 +2753,9 @@ li.menu-search-result-term:before {
     <h2>Syntax</h2>
 
     <emu-grammar type="definition"><emu-production name="JSXElement" id="prod-JSXElement">
-    <emu-nt><a href="#prod-JSXElement">JSXElement</a></emu-nt> <emu-geq>:</emu-geq> <emu-rhs a="b5zyfdt9"><emu-nt id="_ref_3"><a href="#prod-JSXSelfClosingElement">JSXSelfClosingElement</a></emu-nt></emu-rhs>
+    <emu-nt><a href="#prod-JSXElement">JSXElement</a></emu-nt> <emu-geq>:</emu-geq> <emu-rhs a="b5zyfdt9">
+        <emu-nt id="_ref_3"><a href="#prod-JSXSelfClosingElement">JSXSelfClosingElement</a></emu-nt>
+    </emu-rhs>
     <emu-rhs a="urykrh2r" id="prod-KCDyML_C">
         <emu-nt id="_ref_4"><a href="#prod-JSXOpeningElement">JSXOpeningElement</a></emu-nt>
         <emu-nt optional="" id="_ref_5"><a href="#prod-JSXChildren">JSXChildren</a><emu-mods><emu-opt>opt</emu-opt></emu-mods></emu-nt>
@@ -2510,26 +2798,34 @@ li.menu-search-result-term:before {
     </emu-rhs>
 </emu-production>
 <emu-production name="JSXElementName" id="prod-JSXElementName">
-    <emu-nt><a href="#prod-JSXElementName">JSXElementName</a></emu-nt> <emu-geq>:</emu-geq> <emu-rhs a="ehd8jr3p"><emu-nt id="_ref_13"><a href="#prod-JSXIdentifier">JSXIdentifier</a></emu-nt></emu-rhs>
-    <emu-rhs a="xmeipvkx"><emu-nt id="_ref_14"><a href="#prod-JSXNamespacedName">JSXNamespacedName</a></emu-nt></emu-rhs>
-    <emu-rhs a="o4pa_wld"><emu-nt id="_ref_15"><a href="#prod-JSXMemberExpression">JSXMemberExpression</a></emu-nt></emu-rhs>
+    <emu-nt><a href="#prod-JSXElementName">JSXElementName</a></emu-nt> <emu-geq>:</emu-geq> <emu-rhs a="ehd8jr3p">
+        <emu-nt id="_ref_13"><a href="#prod-JSXIdentifier">JSXIdentifier</a></emu-nt>
+    </emu-rhs>
+    <emu-rhs a="xmeipvkx">
+        <emu-nt id="_ref_14"><a href="#prod-JSXNamespacedName">JSXNamespacedName</a></emu-nt>
+    </emu-rhs>
+    <emu-rhs a="o4pa_wld">
+        <emu-nt id="_ref_15"><a href="#prod-JSXMemberExpression">JSXMemberExpression</a></emu-nt>
+    </emu-rhs>
 </emu-production>
 <emu-production name="JSXIdentifier" id="prod-JSXIdentifier">
-    <emu-nt><a href="#prod-JSXIdentifier">JSXIdentifier</a></emu-nt> <emu-geq>:</emu-geq> <emu-rhs a="q0afq8g8"><emu-nt><a href="https://tc39.es/ecma262/#prod-IdentifierStart">IdentifierStart</a></emu-nt></emu-rhs>
+    <emu-nt><a href="#prod-JSXIdentifier">JSXIdentifier</a></emu-nt> <emu-geq>:</emu-geq> <emu-rhs a="q0afq8g8">
+        <emu-nt>IdentifierStart</emu-nt>
+    </emu-rhs>
     <emu-rhs a="wb5wvggw">
         <emu-nt id="_ref_16"><a href="#prod-JSXIdentifier">JSXIdentifier</a></emu-nt>
-        <emu-nt><a href="https://tc39.es/ecma262/#prod-IdentifierPart">IdentifierPart</a></emu-nt>
+        <emu-nt>IdentifierPart</emu-nt>
     </emu-rhs>
     <emu-rhs a="mzgqbah0">
         <emu-nt id="_ref_17"><a href="#prod-JSXIdentifier">JSXIdentifier</a></emu-nt>
-        <emu-gann>[no <emu-nt><a href="https://tc39.es/ecma262/#prod-WhiteSpace">WhiteSpace</a></emu-nt> or <emu-nt><a href="https://tc39.es/ecma262/#prod-annexB-Comment">Comment</a></emu-nt> here]</emu-gann>
+        <emu-gann>[no <emu-nt>WhiteSpace</emu-nt> or <emu-nt>Comment</emu-nt> here]</emu-gann>
         <emu-t>-</emu-t>
     </emu-rhs>
 </emu-production>
 </emu-grammar>
 
     <emu-note><span class="note">Note</span><div class="note-contents">
-      The grammar of <emu-nt id="_ref_18"><a href="#prod-JSXIdentifier">JSXIdentifier</a></emu-nt> is not parameterized the same way <emu-nt><a href="https://tc39.es/ecma262/#prod-grammar-notation-Identifier">Identifier</a></emu-nt> is. This means that <code>&lt;await /&gt;</code> is still a valid production when "[await]" appears during the derivation.
+      The grammar of <emu-nt id="_ref_18"><a href="#prod-JSXIdentifier">JSXIdentifier</a></emu-nt> is not parameterized the same way <emu-nt>Identifier</emu-nt> is. This means that <code>&lt;await /&gt;</code> is still a valid production when "[await]" appears during the derivation.
     </div></emu-note>
 
     <emu-grammar type="definition"><emu-production name="JSXNamespacedName" id="prod-JSXNamespacedName">
@@ -2564,9 +2860,22 @@ li.menu-search-result-term:before {
 </emu-production>
 </emu-grammar>
       <ul>
-        <li>It is a Syntax Error if the <emu-xref href="#sec-algorithm-conventions-syntax-directed-operations"><a href="https://tc39.es/ecma262/#sec-algorithm-conventions-syntax-directed-operations">source text matched by</a></emu-xref> the <emu-nt id="_ref_28"><a href="#prod-JSXElementName">JSXElementName</a></emu-nt> of <emu-nt id="_ref_29"><a href="#prod-JSXOpeningElement">JSXOpeningElement</a></emu-nt> does not equal to the <emu-xref href="#sec-algorithm-conventions-syntax-directed-operations"><a href="https://tc39.es/ecma262/#sec-algorithm-conventions-syntax-directed-operations">source text matched by</a></emu-xref> the <emu-nt id="_ref_30"><a href="#prod-JSXElementName">JSXElementName</a></emu-nt> of <emu-nt id="_ref_31"><a href="#prod-JSXClosingElement">JSXClosingElement</a></emu-nt>.</li>
+        <li>It is a Syntax Error if the source text matched by the <emu-nt id="_ref_28"><a href="#prod-JSXElementName">JSXElementName</a></emu-nt> of <emu-nt id="_ref_29"><a href="#prod-JSXOpeningElement">JSXOpeningElement</a></emu-nt> does not equal to the source text matched by the <emu-nt id="_ref_30"><a href="#prod-JSXElementName">JSXElementName</a></emu-nt> of <emu-nt id="_ref_31"><a href="#prod-JSXClosingElement">JSXClosingElement</a></emu-nt>.</li>
       </ul>
     </emu-clause>
+    <emu-grammar><emu-production name="JSXIdentifier">
+    <emu-nt><a href="#prod-JSXIdentifier">JSXIdentifier</a></emu-nt> <emu-geq>:</emu-geq> <emu-rhs a="q0afq8g8">
+        <emu-nt>IdentifierStart</emu-nt>
+    </emu-rhs>
+    <emu-rhs a="wb5wvggw">
+        <emu-nt id="_ref_32"><a href="#prod-JSXIdentifier">JSXIdentifier</a></emu-nt>
+        <emu-nt>IdentifierPart</emu-nt>
+    </emu-rhs>
+</emu-production>
+</emu-grammar>
+    <ul>
+      <li>It is a Syntax Error if the <emu-nt>IdentifierStart</emu-nt> or <emu-nt>IdentifierPart</emu-nt> of the <emu-nt id="_ref_33"><a href="#prod-JSXIdentifier">JSXIdentifier</a></emu-nt> matches <code>\</code> <emu-nt>UnicodeEscapeSequence</emu-nt>.</li>
+    </ul>
 
   </emu-clause>
 
@@ -2576,74 +2885,86 @@ li.menu-search-result-term:before {
 
     <emu-grammar type="definition"><emu-production name="JSXAttributes" id="prod-JSXAttributes">
     <emu-nt><a href="#prod-JSXAttributes">JSXAttributes</a></emu-nt> <emu-geq>:</emu-geq> <emu-rhs a="5mcgceuv">
-        <emu-nt id="_ref_32"><a href="#prod-JSXSpreadAttribute">JSXSpreadAttribute</a></emu-nt>
-        <emu-nt optional="" id="_ref_33"><a href="#prod-JSXAttributes">JSXAttributes</a><emu-mods><emu-opt>opt</emu-opt></emu-mods></emu-nt>
+        <emu-nt id="_ref_34"><a href="#prod-JSXSpreadAttribute">JSXSpreadAttribute</a></emu-nt>
+        <emu-nt optional="" id="_ref_35"><a href="#prod-JSXAttributes">JSXAttributes</a><emu-mods><emu-opt>opt</emu-opt></emu-mods></emu-nt>
     </emu-rhs>
     <emu-rhs a="dzdrzxq-">
-        <emu-nt id="_ref_34"><a href="#prod-JSXAttribute">JSXAttribute</a></emu-nt>
-        <emu-nt optional="" id="_ref_35"><a href="#prod-JSXAttributes">JSXAttributes</a><emu-mods><emu-opt>opt</emu-opt></emu-mods></emu-nt>
+        <emu-nt id="_ref_36"><a href="#prod-JSXAttribute">JSXAttribute</a></emu-nt>
+        <emu-nt optional="" id="_ref_37"><a href="#prod-JSXAttributes">JSXAttributes</a><emu-mods><emu-opt>opt</emu-opt></emu-mods></emu-nt>
     </emu-rhs>
 </emu-production>
 <emu-production name="JSXSpreadAttribute" id="prod-JSXSpreadAttribute">
     <emu-nt><a href="#prod-JSXSpreadAttribute">JSXSpreadAttribute</a></emu-nt> <emu-geq>:</emu-geq> <emu-rhs a="nhf9l0su">
         <emu-t>{</emu-t>
         <emu-t>...</emu-t>
-        <emu-nt><a href="https://tc39.es/ecma262/#prod-AssignmentExpression">AssignmentExpression</a></emu-nt>
+        <emu-nt>AssignmentExpression</emu-nt>
         <emu-t>}</emu-t>
     </emu-rhs>
 </emu-production>
 <emu-production name="JSXAttribute" id="prod-JSXAttribute">
     <emu-nt><a href="#prod-JSXAttribute">JSXAttribute</a></emu-nt> <emu-geq>:</emu-geq> <emu-rhs a="tveyz-zf">
-        <emu-nt id="_ref_36"><a href="#prod-JSXAttributeName">JSXAttributeName</a></emu-nt>
-        <emu-nt optional="" id="_ref_37"><a href="#prod-JSXAttributeInitializer">JSXAttributeInitializer</a><emu-mods><emu-opt>opt</emu-opt></emu-mods></emu-nt>
+        <emu-nt id="_ref_38"><a href="#prod-JSXAttributeName">JSXAttributeName</a></emu-nt>
+        <emu-nt optional="" id="_ref_39"><a href="#prod-JSXAttributeInitializer">JSXAttributeInitializer</a><emu-mods><emu-opt>opt</emu-opt></emu-mods></emu-nt>
     </emu-rhs>
 </emu-production>
 <emu-production name="JSXAttributeName" id="prod-JSXAttributeName">
-    <emu-nt><a href="#prod-JSXAttributeName">JSXAttributeName</a></emu-nt> <emu-geq>:</emu-geq> <emu-rhs a="ehd8jr3p"><emu-nt id="_ref_38"><a href="#prod-JSXIdentifier">JSXIdentifier</a></emu-nt></emu-rhs>
-    <emu-rhs a="xmeipvkx"><emu-nt id="_ref_39"><a href="#prod-JSXNamespacedName">JSXNamespacedName</a></emu-nt></emu-rhs>
+    <emu-nt><a href="#prod-JSXAttributeName">JSXAttributeName</a></emu-nt> <emu-geq>:</emu-geq> <emu-rhs a="ehd8jr3p">
+        <emu-nt id="_ref_40"><a href="#prod-JSXIdentifier">JSXIdentifier</a></emu-nt>
+    </emu-rhs>
+    <emu-rhs a="xmeipvkx">
+        <emu-nt id="_ref_41"><a href="#prod-JSXNamespacedName">JSXNamespacedName</a></emu-nt>
+    </emu-rhs>
 </emu-production>
 <emu-production name="JSXAttributeInitializer" id="prod-JSXAttributeInitializer">
     <emu-nt><a href="#prod-JSXAttributeInitializer">JSXAttributeInitializer</a></emu-nt> <emu-geq>:</emu-geq> <emu-rhs a="sfj32tqz">
         <emu-t>=</emu-t>
-        <emu-nt id="_ref_40"><a href="#prod-JSXAttributeValue">JSXAttributeValue</a></emu-nt>
+        <emu-nt id="_ref_42"><a href="#prod-JSXAttributeValue">JSXAttributeValue</a></emu-nt>
     </emu-rhs>
 </emu-production>
 <emu-production name="JSXAttributeValue" id="prod-JSXAttributeValue">
     <emu-nt><a href="#prod-JSXAttributeValue">JSXAttributeValue</a></emu-nt> <emu-geq>:</emu-geq> <emu-rhs a="oyac4vtf">
         <emu-t>"</emu-t>
-        <emu-nt optional="" id="_ref_41"><a href="#prod-JSXDoubleStringCharacters">JSXDoubleStringCharacters</a><emu-mods><emu-opt>opt</emu-opt></emu-mods></emu-nt>
+        <emu-nt optional="" id="_ref_43"><a href="#prod-JSXDoubleStringCharacters">JSXDoubleStringCharacters</a><emu-mods><emu-opt>opt</emu-opt></emu-mods></emu-nt>
         <emu-t>"</emu-t>
     </emu-rhs>
     <emu-rhs a="j6v80tpm">
         <emu-t>'</emu-t>
-        <emu-nt optional="" id="_ref_42"><a href="#prod-JSXSingleStringCharacters">JSXSingleStringCharacters</a><emu-mods><emu-opt>opt</emu-opt></emu-mods></emu-nt>
+        <emu-nt optional="" id="_ref_44"><a href="#prod-JSXSingleStringCharacters">JSXSingleStringCharacters</a><emu-mods><emu-opt>opt</emu-opt></emu-mods></emu-nt>
         <emu-t>'</emu-t>
     </emu-rhs>
     <emu-rhs a="0kze3tr4">
         <emu-t>{</emu-t>
-        <emu-nt><a href="https://tc39.es/ecma262/#prod-AssignmentExpression">AssignmentExpression</a></emu-nt>
+        <emu-nt>AssignmentExpression</emu-nt>
         <emu-t>}</emu-t>
     </emu-rhs>
-    <emu-rhs a="ylbqkuqt"><emu-nt id="_ref_43"><a href="#prod-JSXElement">JSXElement</a></emu-nt></emu-rhs>
-    <emu-rhs a="xcc8tnvu"><emu-nt id="_ref_44"><a href="#prod-JSXFragment">JSXFragment</a></emu-nt></emu-rhs>
+    <emu-rhs a="ylbqkuqt">
+        <emu-nt id="_ref_45"><a href="#prod-JSXElement">JSXElement</a></emu-nt>
+    </emu-rhs>
+    <emu-rhs a="xcc8tnvu">
+        <emu-nt id="_ref_46"><a href="#prod-JSXFragment">JSXFragment</a></emu-nt>
+    </emu-rhs>
 </emu-production>
 <emu-production name="JSXDoubleStringCharacters" type="lexical" id="prod-JSXDoubleStringCharacters">
     <emu-nt><a href="#prod-JSXDoubleStringCharacters">JSXDoubleStringCharacters</a></emu-nt> <emu-geq>::</emu-geq> <emu-rhs a="yodnvall">
-        <emu-nt id="_ref_45"><a href="#prod-JSXDoubleStringCharacter">JSXDoubleStringCharacter</a></emu-nt>
-        <emu-nt optional="" id="_ref_46"><a href="#prod-JSXDoubleStringCharacters">JSXDoubleStringCharacters</a><emu-mods><emu-opt>opt</emu-opt></emu-mods></emu-nt>
+        <emu-nt id="_ref_47"><a href="#prod-JSXDoubleStringCharacter">JSXDoubleStringCharacter</a></emu-nt>
+        <emu-nt optional="" id="_ref_48"><a href="#prod-JSXDoubleStringCharacters">JSXDoubleStringCharacters</a><emu-mods><emu-opt>opt</emu-opt></emu-mods></emu-nt>
     </emu-rhs>
 </emu-production>
 <emu-production name="JSXDoubleStringCharacter" type="lexical" id="prod-JSXDoubleStringCharacter">
-    <emu-nt><a href="#prod-JSXDoubleStringCharacter">JSXDoubleStringCharacter</a></emu-nt> <emu-geq>::</emu-geq> <emu-rhs a="nfdqsh-q"><emu-nt id="_ref_47"><a href="#prod-JSXStringCharacter">JSXStringCharacter</a></emu-nt> <emu-gmod>but not <emu-t>"</emu-t></emu-gmod></emu-rhs>
+    <emu-nt><a href="#prod-JSXDoubleStringCharacter">JSXDoubleStringCharacter</a></emu-nt> <emu-geq>::</emu-geq> <emu-rhs a="nfdqsh-q">
+        <emu-nt id="_ref_49"><a href="#prod-JSXStringCharacter">JSXStringCharacter</a></emu-nt> <emu-gmod>but not <emu-t>"</emu-t></emu-gmod>
+    </emu-rhs>
 </emu-production>
 <emu-production name="JSXSingleStringCharacters" type="lexical" id="prod-JSXSingleStringCharacters">
     <emu-nt><a href="#prod-JSXSingleStringCharacters">JSXSingleStringCharacters</a></emu-nt> <emu-geq>::</emu-geq> <emu-rhs a="xebljaxt">
-        <emu-nt id="_ref_48"><a href="#prod-JSXSingleStringCharacter">JSXSingleStringCharacter</a></emu-nt>
-        <emu-nt optional="" id="_ref_49"><a href="#prod-JSXSingleStringCharacters">JSXSingleStringCharacters</a><emu-mods><emu-opt>opt</emu-opt></emu-mods></emu-nt>
+        <emu-nt id="_ref_50"><a href="#prod-JSXSingleStringCharacter">JSXSingleStringCharacter</a></emu-nt>
+        <emu-nt optional="" id="_ref_51"><a href="#prod-JSXSingleStringCharacters">JSXSingleStringCharacters</a><emu-mods><emu-opt>opt</emu-opt></emu-mods></emu-nt>
     </emu-rhs>
 </emu-production>
 <emu-production name="JSXSingleStringCharacter" type="lexical" id="prod-JSXSingleStringCharacter">
-    <emu-nt><a href="#prod-JSXSingleStringCharacter">JSXSingleStringCharacter</a></emu-nt> <emu-geq>::</emu-geq> <emu-rhs a="rqns83ga"><emu-nt id="_ref_50"><a href="#prod-JSXStringCharacter">JSXStringCharacter</a></emu-nt> <emu-gmod>but not <emu-t>'</emu-t></emu-gmod></emu-rhs>
+    <emu-nt><a href="#prod-JSXSingleStringCharacter">JSXSingleStringCharacter</a></emu-nt> <emu-geq>::</emu-geq> <emu-rhs a="rqns83ga">
+        <emu-nt id="_ref_52"><a href="#prod-JSXStringCharacter">JSXStringCharacter</a></emu-nt> <emu-gmod>but not <emu-t>'</emu-t></emu-gmod>
+    </emu-rhs>
 </emu-production>
 </emu-grammar>
   </emu-clause>
@@ -2654,34 +2975,44 @@ li.menu-search-result-term:before {
 
     <emu-grammar type="definition"><emu-production name="JSXChildren" id="prod-JSXChildren">
     <emu-nt><a href="#prod-JSXChildren">JSXChildren</a></emu-nt> <emu-geq>:</emu-geq> <emu-rhs a="ey07n052">
-        <emu-nt id="_ref_51"><a href="#prod-JSXChild">JSXChild</a></emu-nt>
-        <emu-nt optional="" id="_ref_52"><a href="#prod-JSXChildren">JSXChildren</a><emu-mods><emu-opt>opt</emu-opt></emu-mods></emu-nt>
+        <emu-nt id="_ref_53"><a href="#prod-JSXChild">JSXChild</a></emu-nt>
+        <emu-nt optional="" id="_ref_54"><a href="#prod-JSXChildren">JSXChildren</a><emu-mods><emu-opt>opt</emu-opt></emu-mods></emu-nt>
     </emu-rhs>
 </emu-production>
 <emu-production name="JSXChild" id="prod-JSXChild">
-    <emu-nt><a href="#prod-JSXChild">JSXChild</a></emu-nt> <emu-geq>:</emu-geq> <emu-rhs a="iwpkswln"><emu-nt id="_ref_53"><a href="#prod-JSXText">JSXText</a></emu-nt></emu-rhs>
-    <emu-rhs a="ylbqkuqt"><emu-nt id="_ref_54"><a href="#prod-JSXElement">JSXElement</a></emu-nt></emu-rhs>
-    <emu-rhs a="xcc8tnvu"><emu-nt id="_ref_55"><a href="#prod-JSXFragment">JSXFragment</a></emu-nt></emu-rhs>
+    <emu-nt><a href="#prod-JSXChild">JSXChild</a></emu-nt> <emu-geq>:</emu-geq> <emu-rhs a="iwpkswln">
+        <emu-nt id="_ref_55"><a href="#prod-JSXText">JSXText</a></emu-nt>
+    </emu-rhs>
+    <emu-rhs a="ylbqkuqt">
+        <emu-nt id="_ref_56"><a href="#prod-JSXElement">JSXElement</a></emu-nt>
+    </emu-rhs>
+    <emu-rhs a="xcc8tnvu">
+        <emu-nt id="_ref_57"><a href="#prod-JSXFragment">JSXFragment</a></emu-nt>
+    </emu-rhs>
     <emu-rhs a="7t9rmusx">
         <emu-t>{</emu-t>
-        <emu-nt optional="" id="_ref_56"><a href="#prod-JSXChildExpression">JSXChildExpression</a><emu-mods><emu-opt>opt</emu-opt></emu-mods></emu-nt>
+        <emu-nt optional="" id="_ref_58"><a href="#prod-JSXChildExpression">JSXChildExpression</a><emu-mods><emu-opt>opt</emu-opt></emu-mods></emu-nt>
         <emu-t>}</emu-t>
     </emu-rhs>
 </emu-production>
 <emu-production name="JSXText" type="lexical" id="prod-JSXText">
     <emu-nt><a href="#prod-JSXText">JSXText</a></emu-nt> <emu-geq>::</emu-geq> <emu-rhs a="z5eumfmp">
-        <emu-nt id="_ref_57"><a href="#prod-JSXTextCharacter">JSXTextCharacter</a></emu-nt>
-        <emu-nt optional="" id="_ref_58"><a href="#prod-JSXText">JSXText</a><emu-mods><emu-opt>opt</emu-opt></emu-mods></emu-nt>
+        <emu-nt id="_ref_59"><a href="#prod-JSXTextCharacter">JSXTextCharacter</a></emu-nt>
+        <emu-nt optional="" id="_ref_60"><a href="#prod-JSXText">JSXText</a><emu-mods><emu-opt>opt</emu-opt></emu-mods></emu-nt>
     </emu-rhs>
 </emu-production>
 <emu-production name="JSXTextCharacter" type="lexical" id="prod-JSXTextCharacter">
-    <emu-nt><a href="#prod-JSXTextCharacter">JSXTextCharacter</a></emu-nt> <emu-geq>::</emu-geq> <emu-rhs a="r679bmul"><emu-nt id="_ref_59"><a href="#prod-JSXStringCharacter">JSXStringCharacter</a></emu-nt> <emu-gmod>but not one of <emu-t>{</emu-t> or <emu-t>&lt;</emu-t> or <emu-t>&gt;</emu-t> or <emu-t>}</emu-t></emu-gmod></emu-rhs>
+    <emu-nt><a href="#prod-JSXTextCharacter">JSXTextCharacter</a></emu-nt> <emu-geq>::</emu-geq> <emu-rhs a="r679bmul">
+        <emu-nt id="_ref_61"><a href="#prod-JSXStringCharacter">JSXStringCharacter</a></emu-nt> <emu-gmod>but not one of <emu-t>{</emu-t> or <emu-t>&lt;</emu-t> or <emu-t>&gt;</emu-t> or <emu-t>}</emu-t></emu-gmod>
+    </emu-rhs>
 </emu-production>
 <emu-production name="JSXChildExpression" id="prod-JSXChildExpression">
-    <emu-nt><a href="#prod-JSXChildExpression">JSXChildExpression</a></emu-nt> <emu-geq>:</emu-geq> <emu-rhs a="1px9pijq"><emu-nt><a href="https://tc39.es/ecma262/#prod-AssignmentExpression">AssignmentExpression</a></emu-nt></emu-rhs>
+    <emu-nt><a href="#prod-JSXChildExpression">JSXChildExpression</a></emu-nt> <emu-geq>:</emu-geq> <emu-rhs a="1px9pijq">
+        <emu-nt>AssignmentExpression</emu-nt>
+    </emu-rhs>
     <emu-rhs a="w7ifpmpd">
         <emu-t>...</emu-t>
-        <emu-nt><a href="https://tc39.es/ecma262/#prod-AssignmentExpression">AssignmentExpression</a></emu-nt>
+        <emu-nt>AssignmentExpression</emu-nt>
     </emu-rhs>
 </emu-production>
 </emu-grammar>
@@ -2694,12 +3025,14 @@ li.menu-search-result-term:before {
     <emu-clause id="sec-jsx-string-characters">
       <h1><span class="secnum">1.5.1</span> JSX String Characters</h1>
 
-      <p>Historically, string characters within <emu-nt id="_ref_60"><a href="#prod-JSXAttributeValue">JSXAttributeValue</a></emu-nt> and <emu-nt id="_ref_61"><a href="#prod-JSXText">JSXText</a></emu-nt> are extended to allow the presence of <emu-xref href="#sec-HTMLCharacterReference" id="_ref_0"><a href="#sec-HTMLCharacterReference">HTML character references</a></emu-xref> to make copy-pasting between HTML and JSX easier, at the cost of not supporting <code>\</code> <emu-nt><a href="https://tc39.es/ecma262/#prod-annexB-EscapeSequence">EscapeSequence</a></emu-nt> of ECMAScript's <emu-nt><a href="https://tc39.es/ecma262/#prod-StringLiteral">StringLiteral</a></emu-nt>. We may revisit this decision in the future.</p>
-      
+      <p>Historically, string characters within <emu-nt id="_ref_62"><a href="#prod-JSXAttributeValue">JSXAttributeValue</a></emu-nt> and <emu-nt id="_ref_63"><a href="#prod-JSXText">JSXText</a></emu-nt> are extended to allow the presence of <emu-xref href="#sec-HTMLCharacterReference" id="_ref_0"><a href="#sec-HTMLCharacterReference">HTML character references</a></emu-xref> to make copy-pasting between HTML and JSX easier, at the cost of not supporting <code>\</code> <emu-nt>EscapeSequence</emu-nt> of ECMAScript's <emu-nt>StringLiteral</emu-nt>. We may revisit this decision in the future.</p>
+
       <h2>Syntax</h2>
 
       <emu-grammar type="definition"><emu-production name="JSXStringCharacter" type="lexical" id="prod-JSXStringCharacter">
-    <emu-nt><a href="#prod-JSXStringCharacter">JSXStringCharacter</a></emu-nt> <emu-geq>::</emu-geq> <emu-rhs a="uudq6psd"><emu-nt><a href="https://tc39.es/ecma262/#prod-grammar-notation-SourceCharacter">SourceCharacter</a></emu-nt> <emu-gmod>but not one of <emu-nt id="_ref_62"><a href="#prod-HTMLCharacterReference">HTMLCharacterReference</a></emu-nt></emu-gmod></emu-rhs>
+    <emu-nt><a href="#prod-JSXStringCharacter">JSXStringCharacter</a></emu-nt> <emu-geq>::</emu-geq> <emu-rhs a="uudq6psd">
+        <emu-nt>SourceCharacter</emu-nt> <emu-gmod>but not one of <emu-nt id="_ref_64"><a href="#prod-HTMLCharacterReference">HTMLCharacterReference</a></emu-nt></emu-gmod>
+    </emu-rhs>
 </emu-production>
 </emu-grammar>
     </emu-clause>
@@ -2713,16 +3046,22 @@ li.menu-search-result-term:before {
       <h2>Syntax</h2>
 
       <emu-grammar type="definition"><emu-production name="HTMLCharacterReference" type="lexical" id="prod-HTMLCharacterReference">
-    <emu-nt><a href="#prod-HTMLCharacterReference">HTMLCharacterReference</a></emu-nt> <emu-geq>::</emu-geq> <emu-rhs a="agxgawzs"><emu-nt id="_ref_63"><a href="#prod-HTMLDecimalCharacterReference">HTMLDecimalCharacterReference</a></emu-nt></emu-rhs>
-    <emu-rhs a="y8kdlbqm"><emu-nt id="_ref_64"><a href="#prod-HTMLHexCharacterReference">HTMLHexCharacterReference</a></emu-nt></emu-rhs>
-    <emu-rhs a="87f0wv7v"><emu-nt id="_ref_65"><a href="#prod-HTMLNamedCharacterReference">HTMLNamedCharacterReference</a></emu-nt></emu-rhs>
+    <emu-nt><a href="#prod-HTMLCharacterReference">HTMLCharacterReference</a></emu-nt> <emu-geq>::</emu-geq> <emu-rhs a="agxgawzs">
+        <emu-nt id="_ref_65"><a href="#prod-HTMLDecimalCharacterReference">HTMLDecimalCharacterReference</a></emu-nt>
+    </emu-rhs>
+    <emu-rhs a="y8kdlbqm">
+        <emu-nt id="_ref_66"><a href="#prod-HTMLHexCharacterReference">HTMLHexCharacterReference</a></emu-nt>
+    </emu-rhs>
+    <emu-rhs a="87f0wv7v">
+        <emu-nt id="_ref_67"><a href="#prod-HTMLNamedCharacterReference">HTMLNamedCharacterReference</a></emu-nt>
+    </emu-rhs>
 </emu-production>
 <emu-production name="HTMLDecimalCharacterReference" type="lexical" id="prod-HTMLDecimalCharacterReference">
     <emu-nt><a href="#prod-HTMLDecimalCharacterReference">HTMLDecimalCharacterReference</a></emu-nt> <emu-geq>::</emu-geq> <emu-rhs a="fo85v5rn">
         <emu-t>&amp;</emu-t>
         <emu-t>#</emu-t>
-        <emu-nt><a href="https://tc39.es/ecma262/#prod-grammar-notation-DecimalDigits">DecimalDigits</a></emu-nt>
-        <emu-gmod>but only if MV of <emu-nt><a href="https://tc39.es/ecma262/#prod-grammar-notation-DecimalDigits">DecimalDigits</a></emu-nt> ≦ 0x10FFFF</emu-gmod>
+        <emu-nt>DecimalDigits</emu-nt>
+        <emu-gmod>but only if MV of <emu-nt>DecimalDigits</emu-nt> ≦ 0x10FFFF</emu-gmod>
         <emu-t>;</emu-t>
     </emu-rhs>
 </emu-production>
@@ -2731,24 +3070,26 @@ li.menu-search-result-term:before {
         <emu-t>&amp;</emu-t>
         <emu-t>#</emu-t>
         <emu-t>x</emu-t>
-        <emu-nt><a href="https://tc39.es/ecma262/#prod-HexDigits">HexDigits</a></emu-nt>
-        <emu-gmod>but only if MV of <emu-nt><a href="https://tc39.es/ecma262/#prod-HexDigits">HexDigits</a></emu-nt> ≦ 0x10FFFF</emu-gmod>
+        <emu-nt>HexDigits</emu-nt>
+        <emu-gmod>but only if MV of <emu-nt>HexDigits</emu-nt> ≦ 0x10FFFF</emu-gmod>
         <emu-t>;</emu-t>
     </emu-rhs>
 </emu-production>
 <emu-production name="HTMLNamedCharacterReference" type="lexical" id="prod-HTMLNamedCharacterReference">
     <emu-nt><a href="#prod-HTMLNamedCharacterReference">HTMLNamedCharacterReference</a></emu-nt> <emu-geq>::</emu-geq> <emu-rhs a="er91pyag">
         <emu-t>&amp;</emu-t>
-        <emu-nt id="_ref_66"><a href="#prod-HTMLNamedCharacterReferenceName">HTMLNamedCharacterReferenceName</a></emu-nt>
+        <emu-nt id="_ref_68"><a href="#prod-HTMLNamedCharacterReferenceName">HTMLNamedCharacterReferenceName</a></emu-nt>
         <emu-t>;</emu-t>
     </emu-rhs>
 </emu-production>
 <emu-production name="HTMLNamedCharacterReferenceName" type="lexical" id="prod-HTMLNamedCharacterReferenceName">
-    <emu-nt><a href="#prod-HTMLNamedCharacterReferenceName">HTMLNamedCharacterReferenceName</a></emu-nt> <emu-geq>::</emu-geq> <emu-rhs a="dhbeeq7h"><emu-gprose>List of 252 character entity references defined in HTML4 standard</emu-gprose></emu-rhs>
+    <emu-nt><a href="#prod-HTMLNamedCharacterReferenceName">HTMLNamedCharacterReferenceName</a></emu-nt> <emu-geq>::</emu-geq> <emu-rhs a="dhbeeq7h">
+        <emu-gprose>List of 252 character entity references defined in HTML4 standard</emu-gprose>
+    </emu-rhs>
 </emu-production>
 </emu-grammar>
 
-      <emu-note><span class="note">Note 2</span><div class="note-contents"> 
+      <emu-note><span class="note">Note 2</span><div class="note-contents">
         <p>
           This means that the later expansion of this list to <a href="https://html.spec.whatwg.org/multipage/named-characters.html#named-character-references">2231 named character references</a> since HTML5 are intentionally <i>excluded</i> from the support.
         </p>
@@ -2763,33 +3104,39 @@ li.menu-search-result-term:before {
       <h1><span class="secnum">1.5.3</span> JSX String Definition</h1>
       <h2>Syntax</h2>
       <emu-grammar type="definition"><emu-production name="JSXString" id="prod-JSXString">
-    <emu-nt><a href="#prod-JSXString">JSXString</a></emu-nt> <emu-geq>:</emu-geq> <emu-rhs a="a4zlsky9"><emu-nt id="_ref_67"><a href="#prod-JSXDoubleStringCharacters">JSXDoubleStringCharacters</a></emu-nt></emu-rhs>
-    <emu-rhs a="mk2bi2rf"><emu-nt id="_ref_68"><a href="#prod-JSXSingleStringCharacters">JSXSingleStringCharacters</a></emu-nt></emu-rhs>
-    <emu-rhs a="iwpkswln"><emu-nt id="_ref_69"><a href="#prod-JSXText">JSXText</a></emu-nt></emu-rhs>
+    <emu-nt><a href="#prod-JSXString">JSXString</a></emu-nt> <emu-geq>:</emu-geq> <emu-rhs a="a4zlsky9">
+        <emu-nt id="_ref_69"><a href="#prod-JSXDoubleStringCharacters">JSXDoubleStringCharacters</a></emu-nt>
+    </emu-rhs>
+    <emu-rhs a="mk2bi2rf">
+        <emu-nt id="_ref_70"><a href="#prod-JSXSingleStringCharacters">JSXSingleStringCharacters</a></emu-nt>
+    </emu-rhs>
+    <emu-rhs a="iwpkswln">
+        <emu-nt id="_ref_71"><a href="#prod-JSXText">JSXText</a></emu-nt>
+    </emu-rhs>
 </emu-production>
 </emu-grammar>
 
       <emu-clause type="sdo" id="sec-jsx-JSXString-SV">
         <h1><span class="secnum">1.5.3.1</span> Static Semantics: SV</h1>
-        <p>An implementation may convert <emu-nt id="_ref_70"><a href="#prod-JSXString">JSXString</a></emu-nt> into a ECMAScript String value. In order to do this, JSX extends the <emu-xref href="#sec-algorithm-conventions-syntax-directed-operations"><a href="https://tc39.es/ecma262/#sec-algorithm-conventions-syntax-directed-operations">syntax-directed operation</a></emu-xref> <a href="https://tc39.es/ecma262/#sec-static-semantics-sv">SV</a> to <emu-nt id="_ref_71"><a href="#prod-JSXStringCharacter">JSXStringCharacter</a></emu-nt>:</p> 
+        <p>An implementation may convert <emu-nt id="_ref_72"><a href="#prod-JSXString">JSXString</a></emu-nt> into a ECMAScript String value. In order to do this, JSX extends the syntax-directed operation <a href="https://tc39.es/ecma262/#sec-static-semantics-sv">SV</a> to <emu-nt id="_ref_73"><a href="#prod-JSXStringCharacter">JSXStringCharacter</a></emu-nt>:</p>
         <ins class="block">
           <ul>
             <li>
                 The SV of <emu-grammar><emu-production name="JSXStringCharacter" type="lexical" collapsed="" class=" inline">
-    <emu-nt><a href="#prod-JSXStringCharacter">JSXStringCharacter</a></emu-nt> <emu-geq>::</emu-geq> <emu-rhs a="v3ewaosn"><emu-nt><a href="https://tc39.es/ecma262/#prod-grammar-notation-SourceCharacter">SourceCharacter</a></emu-nt></emu-rhs>
+    <emu-nt><a href="#prod-JSXStringCharacter">JSXStringCharacter</a></emu-nt> <emu-geq>::</emu-geq> <emu-rhs a="v3ewaosn"><emu-nt>SourceCharacter</emu-nt></emu-rhs>
 </emu-production>
-</emu-grammar> is the result of performing <a href="https://tc39.es/ecma262/#sec-utf16encodecodepoint">UTF16EncodeCodePoint</a> on the code point matched by <emu-nt><a href="https://tc39.es/ecma262/#prod-grammar-notation-SourceCharacter">SourceCharacter</a></emu-nt>.
+</emu-grammar> is the result of performing <a href="https://tc39.es/ecma262/#sec-utf16encodecodepoint">UTF16EncodeCodePoint</a> on the code point matched by <emu-nt>SourceCharacter</emu-nt>.
             </li>
             <li>
                 The SV of <emu-grammar><emu-production name="HTMLDecimalCharacterReference" type="lexical" collapsed="" class=" inline">
     <emu-nt><a href="#prod-HTMLDecimalCharacterReference">HTMLDecimalCharacterReference</a></emu-nt> <emu-geq>::</emu-geq> <emu-rhs a="gdsompvk">
         <emu-t>&amp;</emu-t>
         <emu-t>#</emu-t>
-        <emu-nt><a href="https://tc39.es/ecma262/#prod-grammar-notation-DecimalDigits">DecimalDigits</a></emu-nt>
+        <emu-nt>DecimalDigits</emu-nt>
         <emu-t>;</emu-t>
     </emu-rhs>
 </emu-production>
-</emu-grammar> is the same as the result of performing <a href="https://tc39.es/ecma262/#sec-utf16encodecodepoint">UTF16EncodeCodePoint</a> on the MV of <emu-nt><a href="https://tc39.es/ecma262/#prod-grammar-notation-DecimalDigits">DecimalDigits</a></emu-nt>
+</emu-grammar> is the same as the result of performing <a href="https://tc39.es/ecma262/#sec-utf16encodecodepoint">UTF16EncodeCodePoint</a> on the MV of <emu-nt>DecimalDigits</emu-nt>
             </li>
             <li>
                 The SV of <emu-grammar><emu-production name="HTMLHexCharacterReference" type="lexical" collapsed="" class=" inline">
@@ -2797,21 +3144,21 @@ li.menu-search-result-term:before {
         <emu-t>&amp;</emu-t>
         <emu-t>#</emu-t>
         <emu-t>x</emu-t>
-        <emu-nt><a href="https://tc39.es/ecma262/#prod-HexDigits">HexDigits</a></emu-nt>
+        <emu-nt>HexDigits</emu-nt>
         <emu-t>;</emu-t>
     </emu-rhs>
 </emu-production>
-</emu-grammar> is the same as the result of performing <a href="https://tc39.es/ecma262/#sec-utf16encodecodepoint">UTF16EncodeCodePoint</a> on the MV of <emu-nt><a href="https://tc39.es/ecma262/#prod-HexDigits">HexDigits</a></emu-nt>
+</emu-grammar> is the same as the result of performing <a href="https://tc39.es/ecma262/#sec-utf16encodecodepoint">UTF16EncodeCodePoint</a> on the MV of <emu-nt>HexDigits</emu-nt>
             </li>
             <li>
                 The SV of <emu-grammar><emu-production name="HTMLNamedCharacterReference" type="lexical" collapsed="" class=" inline">
     <emu-nt><a href="#prod-HTMLNamedCharacterReference">HTMLNamedCharacterReference</a></emu-nt> <emu-geq>::</emu-geq> <emu-rhs a="er91pyag">
         <emu-t>&amp;</emu-t>
-        <emu-nt id="_ref_72"><a href="#prod-HTMLNamedCharacterReferenceName">HTMLNamedCharacterReferenceName</a></emu-nt>
+        <emu-nt id="_ref_74"><a href="#prod-HTMLNamedCharacterReferenceName">HTMLNamedCharacterReferenceName</a></emu-nt>
         <emu-t>;</emu-t>
     </emu-rhs>
 </emu-production>
-</emu-grammar> is the same as the result of performing <a href="https://tc39.es/ecma262/#sec-utf16encodecodepoint">UTF16EncodeCodePoint</a> on the code points matched by <emu-nt id="_ref_73"><a href="#prod-HTMLNamedCharacterReferenceName">HTMLNamedCharacterReferenceName</a></emu-nt> according the implementation-defined list of names.
+</emu-grammar> is the same as the result of performing <a href="https://tc39.es/ecma262/#sec-utf16encodecodepoint">UTF16EncodeCodePoint</a> on the code points matched by <emu-nt id="_ref_75"><a href="#prod-HTMLNamedCharacterReferenceName">HTMLNamedCharacterReferenceName</a></emu-nt> according the implementation-defined list of names.
             </li>
           </ul>
         </ins>

@@ -113,6 +113,14 @@ render(dropdown);
         <li>It is a Syntax Error if the source text matched by the |JSXElementName| of |JSXOpeningElement| does not equal to the source text matched by the |JSXElementName| of |JSXClosingElement|.</li>
       </ul>
     </emu-clause>
+    <emu-grammar>
+      JSXIdentifier
+        IdentifierStart
+        JSXIdentifier IdentifierPart
+    </emu-grammar>
+    <ul>
+      <li>It is a Syntax Error if the |IdentifierStart| or |IdentifierPart| of the |JSXIdentifier| matches `\\` |UnicodeEscapeSequence|.</li>
+    </ul>
 
   </emu-clause>
 
@@ -195,7 +203,7 @@ render(dropdown);
       <h1>JSX String Characters</h1>
 
       <p>Historically, string characters within |JSXAttributeValue| and |JSXText| are extended to allow the presence of <emu-xref href="#sec-HTMLCharacterReference">HTML character references</emu-xref> to make copy-pasting between HTML and JSX easier, at the cost of not supporting `\\` |EscapeSequence| of ECMAScript's |StringLiteral|. We may revisit this decision in the future.</p>
-      
+
       <h2>Syntax</h2>
 
       <emu-grammar type="definition">
@@ -231,7 +239,7 @@ render(dropdown);
           > List of 252 character entity references defined in HTML4 standard
       </emu-grammar>
 
-      <emu-note> 
+      <emu-note>
         <p>
           This means that the later expansion of this list to <a href="https://html.spec.whatwg.org/multipage/named-characters.html#named-character-references">2231 named character references</a> since HTML5 are intentionally <i>excluded</i> from the support.
         </p>
@@ -254,7 +262,7 @@ render(dropdown);
 
       <emu-clause type="sdo" id="sec-jsx-JSXString-SV">
         <h1>Static Semantics: SV</h1>
-        <p>An implementation may convert |JSXString| into a ECMAScript String value. In order to do this, JSX extends the syntax-directed operation <a href="https://tc39.es/ecma262/#sec-static-semantics-sv">SV</a> to |JSXStringCharacter|:</p> 
+        <p>An implementation may convert |JSXString| into a ECMAScript String value. In order to do this, JSX extends the syntax-directed operation <a href="https://tc39.es/ecma262/#sec-static-semantics-sv">SV</a> to |JSXStringCharacter|:</p>
         <ins class="block">
           <ul>
             <li>
