@@ -198,8 +198,8 @@ render(dropdown);
       
       <h2>Syntax</h2>
 
-      <emu-grammar>
-        JSXStringCharacter::
+      <emu-grammar type="definition">
+        JSXStringCharacter ::
           SourceCharacter but not one of HTMLCharacterReference
       </emu-grammar>
     </emu-clause>
@@ -212,7 +212,7 @@ render(dropdown);
 
       <h2>Syntax</h2>
 
-      <emu-grammar>
+      <emu-grammar type="definition">
         HTMLCharacterReference::
           HTMLDecimalCharacterReference
           HTMLHexCharacterReference
@@ -245,7 +245,7 @@ render(dropdown);
     <emu-clause id="sec-jsx-JSXString">
       <h1>JSX String Definition</h1>
       <h2>Syntax</h2>
-      <emu-grammar>
+      <emu-grammar type="definition">
         JSXString :
           JSXDoubleStringCharacters
           JSXSingleStringCharacters
