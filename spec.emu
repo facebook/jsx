@@ -53,9 +53,29 @@ render(dropdown);
     <h2>Syntax</h2>
     <emu-grammar>
       PrimaryExpression :
-        <ins>JSXElement</ins>
-        <ins>JSXFragment</ins>
+        <ins>JSXElementOrFragment `<`</ins>
+        <ins>JSXElementOrFragment</ins>
     </emu-grammar>
+
+    <emu-clause type="sdo" id="sec-jsx-PrimaryExpression-early-errors">
+      <h1>Static Semantics: Early Errors</h1>
+      <emu-grammar>
+        PrimaryExpression :: JSXElementOrFragment `<`
+      </emu-grammar>
+      <ul>
+        <li>It is a SyntaxError if any source text is matched by this production.</li>
+      </ul>
+      <emu-note>
+        This Early Error prevents users from accidentally writing two adjacent JSX elements without wrapping them in a fragment:
+          <pre><code class="language-jsx">
+// Invalid
+var elts = &lt;a&gt;&lt;/a&gt;&lt;b&gt;&lt;/b&gt;
+
+// Valid
+var elts = &lt;&gt;&lt;a&gt;&lt;/a&gt;&lt;b&gt;&lt;/b&gt;&lt;/&gt;
+  </code></pre>
+      </emu-note>
+    </emu-clause>
   </emu-clause>
 
   <emu-clause id="sec-jsx-elements">
@@ -63,6 +83,10 @@ render(dropdown);
     <h2>Syntax</h2>
 
     <emu-grammar type="definition">
+      JSXElementOrFragment ::
+        JSXElement
+        JSXFragment
+
       JSXElement :
         JSXSelfClosingElement
         JSXOpeningElement JSXChildren? JSXClosingElement
