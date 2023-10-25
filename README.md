@@ -1,6 +1,5 @@
 DRAFT: JSX Specification
 ========================
-[![Support Ukraine](https://img.shields.io/badge/Support-Ukraine-FFD500?style=flat&labelColor=005BBB)](https://opensource.fb.com/support-ukraine)
 
 [**See spec text with grammar here**](https://facebook.github.io/jsx).
 
